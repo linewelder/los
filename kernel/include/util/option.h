@@ -35,24 +35,50 @@ private:
     bool exists;
 };
 
+/**
+ * Not to be used outside.
+ */
+namespace helper {
+    template <typename RefT, typename PtrT>
+    class OptionRefBase {
+    public:
+        constexpr bool has_value() const {
+            return ptr != 0;
+        }
+
+        constexpr RefT get_value() const {
+            return *ptr;
+        }
+
+        constexpr PtrT operator->() const {
+            return ptr;
+        }
+
+    protected:
+        PtrT ptr;
+    };
+}
+
 template <typename T>
-class Option<const T&> {
+class Option<T&> : public helper::OptionRefBase<T&, T*> {
 public:
-    constexpr Option() : ptr(0) {}
-    constexpr Option(const T& value) : ptr(&value) {}
-
-    constexpr bool has_value() const {
-        return ptr != 0;
+    constexpr Option() {
+        this->ptr = 0;
     }
 
-    constexpr const T& get_value() const {
-        return *ptr;
+    constexpr Option(T& value) {
+        this->ptr = &value;
+    }
+};
+
+template <typename T>
+class Option<const T&> : public helper::OptionRefBase<const T&, const T*> {
+public:
+    constexpr Option() {
+        this->ptr = 0;
     }
 
-    constexpr const T* operator->() const {
-        return ptr;
+    constexpr Option(const T& value) {
+        this->ptr = &value;
     }
-
-protected:
-    const T* ptr;
 };
