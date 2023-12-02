@@ -1,3 +1,7 @@
+/*
+Taken from https://www.gnu.org/software/grub/manual/multiboot/html_node/multiboot_002eh.html.
+*/
+
 /* multiboot.h - Multiboot header file. */
 /* Copyright (C) 1999,2003,2007,2008,2009,2010  Free Software Foundation, Inc.
  *
