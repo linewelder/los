@@ -82,3 +82,52 @@ public:
         this->ptr = &value;
     }
 };
+
+/**
+ * Not to be used outside.
+ */
+namespace helper {
+    template <typename PtrT>
+    class OptionPtrBase {
+    public:
+        constexpr bool has_value() const {
+            return ptr != 0;
+        }
+
+        constexpr PtrT get_value() const {
+            return ptr;
+        }
+
+        constexpr PtrT operator->() const {
+            return ptr;
+        }
+
+    protected:
+        PtrT ptr;
+    };
+}
+
+template <typename T>
+class Option<T*> : public helper::OptionPtrBase<T*> {
+public:
+    constexpr Option() {
+        this->ptr = 0;
+    }
+
+    constexpr Option(T* value) {
+        this->ptr = value;
+    }
+};
+
+
+template <typename T>
+class Option<const T*> : public helper::OptionPtrBase<const T*> {
+public:
+    constexpr Option() {
+        this->ptr = 0;
+    }
+
+    constexpr Option(const T* value) {
+        this->ptr = value;
+    }
+};
