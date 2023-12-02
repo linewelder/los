@@ -2,6 +2,7 @@
 
 #include <arch/i386/asm.h>
 #include <kernel/log.h>
+#include <util/bits.h>
 #include <util/inplace_vector.h>
 
 namespace pci {
@@ -43,9 +44,9 @@ namespace pci {
     {
         uint32_t dword = config_read_u32(bus, device, function, offset & 0xfc);
         if ((offset & 0x03) == 0) {
-            return dword & 0xffff;
+            return get_bit_range(dword, 0, 16);
         } else {
-            return dword >> 16;
+            return get_bit_range(dword, 16, 16);
         }
     }
 
@@ -60,8 +61,8 @@ namespace pci {
         uint8_t function, uint8_t offset)
     {
         uint32_t dword = config_read_u32(bus, device, function, offset & 0xfc);
-        uint8_t offset_within_dword = (offset & 0x03) * 8;
-        return (dword >> offset_within_dword) & 0xff;
+        unsigned offset_within_dword = (offset & 0x03) * 8;
+        return get_bit_range(dword, offset_within_dword, 8);
     }
 
     static InplaceVector<Function, 256> functions;
@@ -113,7 +114,7 @@ namespace pci {
     }
 
     bool Function::has_multiple_functions() const {
-        return config_read_u8(bus, device, function, 0x0e) & 0x80;
+        return get_bit(config_read_u8(bus, device, function, 0x0e), 7);
     }
 
     /**

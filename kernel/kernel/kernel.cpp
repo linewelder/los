@@ -14,9 +14,10 @@
 #include <kernel/printf.h>
 #include <kernel/kpanic.h>
 #include <kernel/multiboot.h>
+#include <util/bits.h>
 
 static uint32_t detect_available_ram(multiboot_info_t* multiboot_info) {
-    bool mmap_valid = multiboot_info->flags & (1 << 6);
+    bool mmap_valid = get_bit(multiboot_info->flags, 6);
     if (!mmap_valid) {
         kpanic("Invalid memory map");
     }

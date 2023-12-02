@@ -2,6 +2,7 @@
 
 #include <arch/i386/asm.h>
 #include <kernel/log.h>
+#include <util/bits.h>
 #include <util/inplace_vector.h>
 
 namespace ide {
@@ -289,8 +290,8 @@ namespace ide {
         // I have no idea why we have to swap the characters.
         int last_nonspace_index = 0;
         for (int i = 0; i < 20; i ++) {
-            char a = identification[IDENT_MODEL + i] >> 8;
-            char b = identification[IDENT_MODEL + i] & 0xff;
+            char a = get_bit_range(identification[IDENT_MODEL + i], 8, 8);
+            char b = get_bit_range(identification[IDENT_MODEL + i], 0, 8);
 
             if (b != ' ') last_nonspace_index = 2 * i + 1;
             else if (a != ' ') last_nonspace_index = 2 * i;
@@ -319,23 +320,20 @@ namespace ide {
 
         if (lba >= 0x1000'0000) {
             address_mode = AddressMode::LBA48;
-            lba_io[0] = (lba & 0x0000'0000'00ff);
-            lba_io[1] = (lba & 0x0000'0000'ff00) >> 8;
-            lba_io[2] = (lba & 0x0000'00ff'0000) >> 16;
-            lba_io[3] = (lba & 0x0000'ff00'0000) >> 24;
-            lba_io[4] = (lba & 0x00ff'0000'0000) >> 32;
-            lba_io[5] = (lba & 0xff00'0000'0000) >> 40;
+            for (int i = 0; i < 6; i++) {
+                lba_io[i] = get_bit_range(lba, i * 8, 8);
+            }
             head      = 0;
         } else if (features & FEATURES_SUPPORTS_LBA) {
             address_mode = AddressMode::LBA28;
             uint32_t lba_low = (uint32_t)lba;
-            lba_io[0] = (lba_low & 0x000'00ff);
-            lba_io[1] = (lba_low & 0x000'ff00) >> 8;
-            lba_io[2] = (lba_low & 0x0ff'0000) >> 16;
+            lba_io[0] = get_bit_range(lba_low, 0, 8);
+            lba_io[1] = get_bit_range(lba_low, 8, 8);
+            lba_io[2] = get_bit_range(lba_low, 16, 8);
             lba_io[3] = 0;
             lba_io[4] = 0;
             lba_io[5] = 0;
-            head      = (lba_low & 0xf00'0000) >> 24;
+            head      = get_bit_range(lba_low, 24, 4);
         } else {
             address_mode = AddressMode::CHS;
 
@@ -345,8 +343,8 @@ namespace ide {
             head = (lba_low + 1 - sector) % (16 * 63) / 63;
 
             lba_io[0] = sector;
-            lba_io[1] = cylinder & 0xff;
-            lba_io[2] = cylinder >> 8;
+            lba_io[1] = get_bit_range(cylinder, 0, 8);
+            lba_io[2] = get_bit_range(cylinder, 8, 8);
             lba_io[3] = 0;
             lba_io[4] = 0;
             lba_io[5] = 0;
@@ -357,10 +355,10 @@ namespace ide {
 
         uint8_t drive_select_value = 0xa0;
         if (address_mode != AddressMode::CHS) {
-            drive_select_value |= 1 << 6;
+            drive_select_value = set_bit(drive_select_value, 6);
         }
         if (drive_type == DriveType::SLAVE) {
-            drive_select_value |= 1 << 4;
+            drive_select_value = set_bit(drive_select_value, 4);
         }
         drive_select_value |= head;
         channel.write_drive_select(drive_select_value);

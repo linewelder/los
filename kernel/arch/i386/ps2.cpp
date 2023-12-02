@@ -4,6 +4,7 @@
 #include <arch/i386/asm.h>
 #include <arch/i386/pic.h>
 #include <kernel/log.h>
+#include <util/bits.h>
 #include <util/inplace_vector.h>
 
 namespace ps2 {
@@ -89,9 +90,9 @@ namespace ps2 {
         inb(DATA_PORT); // Flush the output buffer.
 
         uint8_t config_byte = read_config_byte();
-        config_byte &= ~(1 << 0); // Disable port 0 interrupt.
-        config_byte &= ~(1 << 1); // Disable port 1 interrupt.
-        config_byte &= ~(1 << 6); // Disable translation.
+        config_byte = unset_bit(config_byte, 0); // Disable port 0 interrupt.
+        config_byte = unset_bit(config_byte, 1); // Disable port 1 interrupt.
+        config_byte = unset_bit(config_byte, 6); // Disable translation.
         write_config_byte(config_byte);
 
         outb(CONTROL_PORT, 0xaa); // Perform self test.
@@ -114,7 +115,7 @@ namespace ps2 {
         // Determine if there are 2 channels.
         outb(CONTROL_PORT, 0xa8); // Try enabling device 1.
         io_wait();
-        if (read_config_byte() & (1 << 5)) {
+        if (get_bit(read_config_byte(), 5)) {
             LOG_INFO("PS/2 controller has one channel.");
             two_channels = false;
         } else {
@@ -159,7 +160,7 @@ namespace ps2 {
         if (this->id == 1) {
             outb(CONTROL_PORT, 0xd4);
         }
-        while (inb(CONTROL_PORT) & 2) {
+        while (get_bit(inb(CONTROL_PORT), 1)) {
             tiny_delay();
         }
         outb(DATA_PORT, data);
@@ -243,7 +244,7 @@ namespace ps2 {
 
     bool try_poll(uint8_t& output, int max_cycles) {
         int cycles = 0;
-        while (!(inb(CONTROL_PORT) & 1) && cycles < max_cycles) {
+        while (!get_bit(inb(CONTROL_PORT), 0) && cycles < max_cycles) {
             tiny_delay();
             cycles++;
             if (cycles == max_cycles) return false;

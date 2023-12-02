@@ -7,15 +7,16 @@
 #include <arch/i386/idt.h>
 #include <kernel/kpanic.h>
 #include <kernel/log.h>
+#include <util/bits.h>
 
 static constexpr char const* TABLE_NAME[] = {
     "GDT", "IDT", "LDT", "IDT"
 };
 
 static void report_selector(int selector) {
-    bool external = (selector & 1) == 1;
-    int index = (selector >> 3) & 0x1fff;
-    const char* table = TABLE_NAME[(selector >> 1) & 0b11];
+    bool external = get_bit(selector, 0);
+    int index = get_bit_range(selector, 3, 13);
+    const char* table = TABLE_NAME[get_bit_range(selector, 1, 2)];
 
     LOG_ERROR("Index 0x%x in %s%s\n",
         index, table,

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <arch/i386/asm.h>
+#include <util/bits.h>
 
 namespace pic {
     static constexpr uint8_t PIC1_VECTOR_OFFSET = 0x20;
@@ -66,8 +67,8 @@ namespace pic {
             port = PIC2_DATA_PORT;
             irq -= 8;
         }
-        uint8_t value = inb(port) | (1 << irq);
-        outb(port, value);        
+        uint8_t value = set_bit(inb(port), irq);
+        outb(port, value);
     }
     
     void clear_mask(uint8_t irq) {
@@ -78,8 +79,8 @@ namespace pic {
             port = PIC2_DATA_PORT;
             irq -= 8;
         }
-        uint8_t value = inb(port) & ~(1 << irq);
-        outb(port, value);        
+        uint8_t value = unset_bit(inb(port), irq);
+        outb(port, value);
     }
 
     void send_eoi(uint8_t irq) {

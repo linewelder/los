@@ -1,17 +1,19 @@
 #include <arch/i386/gdt.h>
 
+#include <util/bits.h>
+
 namespace gdt {
     static EncodedGdtEntry gdt[3];
 
     static void encode_gdt_entry(EncodedGdtEntry& target, GdtEntry desc) {
-        target.data[0] = desc.limit & 0xff;
-        target.data[1] = (desc.limit >> 8) & 0xff;
-        target.data[6] = (desc.limit >> 16) & 0x0f;
+        target.data[0] = get_bit_range(desc.limit, 0, 8);
+        target.data[1] = get_bit_range(desc.limit, 8, 8);
+        target.data[6] = get_bit_range(desc.limit, 16, 4);
 
-        target.data[2] = desc.base & 0xff;
-        target.data[3] = (desc.base >> 8) & 0xff;
-        target.data[4] = (desc.base >> 16) & 0xff;
-        target.data[7] = (desc.base >> 24) & 0xff;
+        target.data[2] = get_bit_range(desc.base, 0, 8);
+        target.data[3] = get_bit_range(desc.base, 8, 8);
+        target.data[4] = get_bit_range(desc.base, 16, 8);
+        target.data[7] = get_bit_range(desc.base, 24, 8);
 
         target.data[5] = desc.access_byte;
 
