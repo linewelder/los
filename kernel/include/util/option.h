@@ -35,10 +35,7 @@ private:
     bool exists;
 };
 
-/**
- * Not to be used outside.
- */
-namespace helper {
+namespace detail {
     template <typename RefT, typename PtrT>
     class OptionRefBase {
     public:
@@ -60,7 +57,7 @@ namespace helper {
 }
 
 template <typename T>
-class Option<T&> : public helper::OptionRefBase<T&, T*> {
+class Option<T&> : public detail::OptionRefBase<T&, T*> {
 public:
     constexpr Option() {
         this->ptr = 0;
@@ -72,7 +69,7 @@ public:
 };
 
 template <typename T>
-class Option<const T&> : public helper::OptionRefBase<const T&, const T*> {
+class Option<const T&> : public detail::OptionRefBase<const T&, const T*> {
 public:
     constexpr Option() {
         this->ptr = 0;
@@ -83,10 +80,7 @@ public:
     }
 };
 
-/**
- * Not to be used outside.
- */
-namespace helper {
+namespace detail {
     template <typename PtrT>
     class OptionPtrBase {
     public:
@@ -108,7 +102,7 @@ namespace helper {
 }
 
 template <typename T>
-class Option<T*> : public helper::OptionPtrBase<T*> {
+class Option<T*> : public detail::OptionPtrBase<T*> {
 public:
     constexpr Option() {
         this->ptr = 0;
@@ -121,7 +115,7 @@ public:
 
 
 template <typename T>
-class Option<const T*> : public helper::OptionPtrBase<const T*> {
+class Option<const T*> : public detail::OptionPtrBase<const T*> {
 public:
     constexpr Option() {
         this->ptr = 0;
