@@ -181,7 +181,7 @@ namespace ide {
         }
 
         PollingResult read_sectors(uint8_t sector_count, void* buffer) const {
-            uint16_t* word_buffer = reinterpret_cast<uint16_t*>(buffer); // We read the data in words.
+            uint8_t* byte_buffer = reinterpret_cast<uint8_t*>(buffer);
 
             for (uint8_t i = 0; i < sector_count; i++) {
                 PollingResult result = poll(true);
@@ -190,8 +190,9 @@ namespace ide {
                 }
 
                 for (int j = 0; j < 256; j++) {
-                    word_buffer[0] = read_data();
-                    word_buffer++;
+                    uint16_t word = read_data();
+                    byte_buffer[2 * j] = get_bit_range(word, 0, 8);
+                    byte_buffer[2 * j + 1] = get_bit_range(word, 8, 8);
                 }
             }
 
@@ -199,13 +200,13 @@ namespace ide {
         }
 
         PollingResult write_sectors(uint8_t sector_count, void* buffer) const {
-            uint16_t* word_buffer = reinterpret_cast<uint16_t*>(buffer); // We write the data in words.
+            uint8_t* byte_buffer = reinterpret_cast<uint8_t*>(buffer);
 
             for (uint8_t i = 0; i < sector_count; i++) {
                 poll(false);
                 for (int j = 0; j < 256; j++) {
-                    write_data(word_buffer[0]);
-                    word_buffer++;
+                    write_data(byte_buffer[2 * j] |
+                        (byte_buffer[2 * j + 1] << 8));
                 }
             }
 
