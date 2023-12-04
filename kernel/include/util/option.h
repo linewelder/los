@@ -40,7 +40,7 @@ namespace detail {
     class OptionRefBase {
     public:
         constexpr bool has_value() const {
-            return ptr != 0;
+            return ptr != nullptr;
         }
 
         constexpr RefT get_value() const {
@@ -60,7 +60,7 @@ template <typename T>
 class Option<T&> : public detail::OptionRefBase<T&, T*> {
 public:
     constexpr Option() {
-        this->ptr = 0;
+        this->ptr = nullptr;
     }
 
     constexpr Option(T& value) {
@@ -72,7 +72,7 @@ template <typename T>
 class Option<const T&> : public detail::OptionRefBase<const T&, const T*> {
 public:
     constexpr Option() {
-        this->ptr = 0;
+        this->ptr = nullptr;
     }
 
     constexpr Option(const T& value) {
@@ -85,7 +85,7 @@ namespace detail {
     class OptionPtrBase {
     public:
         constexpr bool has_value() const {
-            return ptr != 0;
+            return ptr != nullptr;
         }
 
         constexpr PtrT get_value() const {
@@ -105,7 +105,7 @@ template <typename T>
 class Option<T*> : public detail::OptionPtrBase<T*> {
 public:
     constexpr Option() {
-        this->ptr = 0;
+        this->ptr = nullptr;
     }
 
     constexpr Option(T* value) {
@@ -118,7 +118,7 @@ template <typename T>
 class Option<const T*> : public detail::OptionPtrBase<const T*> {
 public:
     constexpr Option() {
-        this->ptr = 0;
+        this->ptr = nullptr;
     }
 
     constexpr Option(const T* value) {
