@@ -1,11 +1,14 @@
 #include <arch/i386/idt.h>
 
+#include <util/bits.h>
+
 namespace idt {
     static EncodedIdtEntry idt[256];
 
     static void register_gate(int vector, void* handler, uint8_t attribute_type) {
-        idt[vector].offset_1 = static_cast<uint16_t>((uint32_t)handler & 0xffff);
-        idt[vector].offset_2 = static_cast<uint16_t>((uint32_t)handler >> 16);
+        uint32_t address = reinterpret_cast<uint32_t>(handler);
+        idt[vector].offset_1 = get_bit_range(address, 0, 16);
+        idt[vector].offset_2 = get_bit_range(address, 16, 16);
         idt[vector].segment = 0x08;
         idt[vector].zero = 0;
         idt[vector].attributes = ATTR_VALID | ATTR_RING(3) | attribute_type;
