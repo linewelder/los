@@ -22,10 +22,10 @@ namespace pci {
     {
         uint32_t address =
             0x80000000 |
-            (static_cast<uint32_t>(bus) << 16) |
-            (static_cast<uint32_t>(device << 11)) |
-            (static_cast<uint32_t>(function << 8)) |
-            static_cast<uint32_t>(offset);
+            (bus << 16) |
+            (device << 11) |
+            (function << 8) |
+            offset;
 
         outl(CONFIG_ADDRESS_PORT, address);
         return inl(CONFIG_DATA_PORT);
