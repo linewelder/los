@@ -29,11 +29,12 @@ static uint32_t detect_available_ram(multiboot_info_t* multiboot_info) {
         offset += sizeof(multiboot_memory_map_t))
     {
         multiboot_memory_map_t* block =
-            (multiboot_memory_map_t*)(multiboot_info->mmap_addr + offset);
+            reinterpret_cast<multiboot_memory_map_t*>(
+                multiboot_info->mmap_addr + offset);
 
         // Available RAM above 1M.
         if (block->type == MULTIBOOT_MEMORY_AVAILABLE && block->addr >= 0x10'0000) {
-            ram_available += (uint32_t)block->len;
+            ram_available += static_cast<uint32_t>(block->len);
         }
     }
 
@@ -94,7 +95,7 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
         const ide::Device& disk = ide::get_disk(i);
         printf("  - %s (%d Kb) Inteface: %s\n",
             disk.model, disk.size / 2,
-            (const char*[]){ "ATA", "ATAPI" }[(int)disk.interface]);
+            (const char*[]){ "ATA", "ATAPI" }[static_cast<int>(disk.interface)]);
     };
 
     Option<const ps2::Device&> keyboard = ps2::find_device_with_type(0xab83);

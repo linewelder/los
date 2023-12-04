@@ -47,7 +47,7 @@ namespace gdt {
         fill_gdt();
 
         gdtr.size = sizeof(gdt);
-        gdtr.base = (uint32_t)&gdt;
+        gdtr.base = reinterpret_cast<uint32_t>(&gdt);
         asm volatile("lgdt %0" : : "m"(gdtr));
 
         // Reload segment registers.

@@ -40,7 +40,7 @@ namespace idt {
         }
 
         idtr.size = sizeof(idt);
-        idtr.base = (uint32_t)&idt;
+        idtr.base = reinterpret_cast<uint32_t>(&idt);
         asm volatile("lidt %0" : : "m"(idtr));
     }
 }

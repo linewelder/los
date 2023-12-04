@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 namespace terminal {
-    static uint16_t* const BUFFER = (uint16_t*)0xb8000;
+    static uint16_t* const BUFFER = reinterpret_cast<uint16_t*>(0xb8000);
 
     static constexpr inline uint8_t vga_entry_color(Color fg, Color bg) {
         return static_cast<uint8_t>(fg) | static_cast<uint8_t>(bg) << 4;

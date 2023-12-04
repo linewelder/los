@@ -71,7 +71,7 @@ int vprintf(const char* format, va_list args) {
                 }
 
                 case 'c': {
-                    char ch = (char)va_arg(args, int); // char promotes to int.
+                    char ch = static_cast<char>(va_arg(args, int)); // char promotes to int.
                     if (remained == 0) return -1;
                     terminal::putchar(ch);
                     written++;

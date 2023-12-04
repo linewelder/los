@@ -129,7 +129,7 @@ namespace ide {
         }
 
         void write_command(Command data) const {
-            outb(base_port + 7, (uint8_t)data);
+            outb(base_port + 7, static_cast<uint8_t>(data));
         }
 
         void disable_irqs() const {
@@ -181,7 +181,7 @@ namespace ide {
         }
 
         PollingResult read_sectors(uint8_t sector_count, void* buffer) const {
-            uint16_t* word_buffer = (uint16_t*)buffer; // We read the data in words.
+            uint16_t* word_buffer = reinterpret_cast<uint16_t*>(buffer); // We read the data in words.
 
             for (uint8_t i = 0; i < sector_count; i++) {
                 PollingResult result = poll(true);
@@ -199,7 +199,7 @@ namespace ide {
         }
 
         PollingResult write_sectors(uint8_t sector_count, void* buffer) const {
-            uint16_t* word_buffer = (uint16_t*)buffer; // We write the data in words.
+            uint16_t* word_buffer = reinterpret_cast<uint16_t*>(buffer); // We write the data in words.
 
             for (uint8_t i = 0; i < sector_count; i++) {
                 poll(false);
@@ -221,7 +221,7 @@ namespace ide {
     };
 
     IdentifyResult Device::identify() {
-        Channel& channel = channels[(int)channel_type];
+        Channel& channel = channels[static_cast<int>(channel_type)];
 
         switch (drive_type) {
         case DriveType::MASTER:
@@ -279,12 +279,12 @@ namespace ide {
 
         signature = identification[IDENT_DEVICE_TYPE];
         features = identification[IDENT_FEATURES];
-        command_sets = *(uint32_t*)(identification + IDENT_COMMAND_SETS);
+        command_sets = *reinterpret_cast<uint32_t*>(identification + IDENT_COMMAND_SETS);
 
         if (command_sets & COMMAND_SETS_USES_48_BIT) {
-            size = *(uint32_t*)(identification + IDENT_MAX_LBA_EXT);
+            size = *reinterpret_cast<uint32_t*>(identification + IDENT_MAX_LBA_EXT);
         } else { // CHS or 28-bit addressing.
-            size = *(uint32_t*)(identification + IDENT_MAX_LBA);
+            size = *reinterpret_cast<uint32_t*>(identification + IDENT_MAX_LBA);
         }
 
         // I have no idea why we have to swap the characters.
@@ -326,7 +326,7 @@ namespace ide {
             head      = 0;
         } else if (features & FEATURES_SUPPORTS_LBA) {
             address_mode = AddressMode::LBA28;
-            uint32_t lba_low = (uint32_t)lba;
+            uint32_t lba_low = static_cast<uint32_t>(lba);
             lba_io[0] = get_bit_range(lba_low, 0, 8);
             lba_io[1] = get_bit_range(lba_low, 8, 8);
             lba_io[2] = get_bit_range(lba_low, 16, 8);
@@ -337,7 +337,7 @@ namespace ide {
         } else {
             address_mode = AddressMode::CHS;
 
-            uint32_t lba_low = (uint32_t)lba;
+            uint32_t lba_low = static_cast<uint32_t>(lba);
             uint8_t sector = (lba_low % 63) + 1;
             uint16_t cylinder = (lba_low + 1 - sector) / (16 * 63);
             head = (lba_low + 1 - sector) % (16 * 63) / 63;
@@ -350,7 +350,7 @@ namespace ide {
             lba_io[5] = 0;
         }
 
-        const Channel& channel = channels[(int)channel_type];
+        const Channel& channel = channels[static_cast<int>(channel_type)];
         channel.wait_not_busy();
 
         uint8_t drive_select_value = 0xa0;
@@ -404,10 +404,10 @@ namespace ide {
 
     static const IDiskVmt idisk_vmt {
         .read = [](const void* device, uint64_t lba, uint8_t sector_count, void* buffer) -> bool {
-            return ((Device*)device)->read(lba, sector_count, buffer);
+            return reinterpret_cast<const Device*>(device)->read(lba, sector_count, buffer);
         },
         .write = [](const void* device, uint64_t lba, uint8_t sector_count, void* buffer) -> bool {
-            return ((Device*)device)->write(lba, sector_count, buffer);
+            return reinterpret_cast<const Device*>(device)->write(lba, sector_count, buffer);
         },
     };
 
@@ -446,7 +446,9 @@ namespace ide {
         for (int channel = 0; channel < 2; channel++) {
             for (int drive_type = 0; drive_type < 2; drive_type++) {
                 int id = channel * 2 + drive_type;
-                ide::Device disk((ide::ChannelType)channel, (ide::DriveType)drive_type);
+                ide::Device disk(
+                    static_cast<ide::ChannelType>(channel),
+                    static_cast<ide::DriveType>(drive_type));
                 IdentifyResult result = disk.identify();
 
                 switch (result.status) {
