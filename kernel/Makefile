@@ -11,6 +11,7 @@ CXX := i686-elf-g++
 CXXFLAGS := -fno-exceptions -fno-rtti -ffreestanding -nostdlib \
 	        -O2 -mgeneral-regs-only \
 			-Wall -Wextra -Werror \
+			-std=c++20 \
 			-I$(INCLUDE_DIR)
 CXX_DEP_FLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.cpp.Td
 
