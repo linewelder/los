@@ -154,8 +154,10 @@ void print(FormatString<FirstArg, Args...> format, FirstArg const& first, const 
     print(format.rest, args...);
 }
 
+void println();
+
 template <typename... Args>
 void println(FormatString<Args...> format, const Args&... args) {
     print(format, args...);
-    print_value("\n", '\0');
+    println();
 }

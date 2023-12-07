@@ -50,3 +50,7 @@ void print_value(int value, char format) {
         print_number(value, 10);
     }
 }
+
+void println() {
+    terminal::putchar('\n');
+}
