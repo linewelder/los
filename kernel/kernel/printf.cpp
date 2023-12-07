@@ -44,13 +44,19 @@ static int print_number(int value, int base, int max_length) {
     return written;
 }
 
-/** Supports only %d %x %c %s formatters without precision and width. */
+/** Supports only %d %x %ld %lx %c %s formatters without precision and width. */
 int vprintf(const char* format, va_list args) {
     int written = 0;
     while (*format != '\0') {
         size_t remained = INT_MAX - written;
 
         if (format[0] == '%') {
+            static_assert(sizeof(long) == sizeof(int));
+            // No difference between %ld %lx and %d %x.
+            if (format[1] == 'l') {
+                format++;
+            }
+
             switch (format[1]) {
                 case 'd': {
                     int i = va_arg(args, int);
@@ -115,7 +121,7 @@ int vprintf(const char* format, va_list args) {
     return written;
 }
 
-/** Supports only %d %x %c %s formatters without precision and width. */
+/** Supports only %d %x %ld %lx %c %s formatters without precision and width. */
 int printf(const char* format, ...) {
     va_list args;
     va_start(args, format);
