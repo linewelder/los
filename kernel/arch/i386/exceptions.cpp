@@ -48,7 +48,7 @@ static void unhandled_exception(
     case ErrorCodeType::NONE:
         break;
     }
-    kpanic("Unhandled exception: %s", message);
+    kpanic("Unhandled exception: {}", message);
 }
 
 __attribute__((interrupt))
