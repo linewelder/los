@@ -5,10 +5,47 @@
 
 #pragma once
 
+#include <stdint.h>
+#include <util/option.h>
 #include <util/string_view.h>
 #include <util/util.h>
 
 namespace detail {
+    struct FormattingSlot {
+        size_t start;
+        size_t end;
+        char format;
+    };
+
+    consteval Option<FormattingSlot> find_formatting_slot(StringView fmt) {
+        for (size_t i = 0; i + 1 < fmt.get_size(); i++) {
+            // Only look at formatting slots.
+            if (fmt[i] != '{') continue;
+            size_t start = i;
+            i++;
+
+            char format = '\0';
+            if (fmt[i] == '}') {
+                i++;
+            } else if (i + 2 < fmt.get_size() &&
+                       fmt[i] == ':' && fmt[i + 2] == '}')
+            {
+                format = fmt[i + 1];
+                i += 3;
+            } else {
+                compiletime_fail("Malformed formatting slot.");
+            }
+
+            return (FormattingSlot){
+                .start = start,
+                .end = i,
+                .format = format,
+            };
+        }
+
+        return {};
+    }
+
     template <typename... Args>
     struct FormatString;
 
@@ -17,10 +54,9 @@ namespace detail {
         consteval FormatString(StringView fmt)
             : inner(fmt)
         {
-            for (size_t i = 0; i + 1 < fmt.get_size(); i++) {
-                if (fmt[i] == '{' && fmt[i + 1] == '}') {
-                    compiletime_fail("Given less arguments than expected by the format string.");
-                }
+            auto slot = find_formatting_slot(fmt);
+            if (slot.has_value()) {
+                compiletime_fail("Given less arguments than expected by the format string.");
             }
         }
 
@@ -35,18 +71,15 @@ namespace detail {
 
     template <typename First, typename... Args>
     struct FormatString<First, Args...> {
-        consteval FormatString(StringView fmt)
-            : inner(fmt)
-        {
-            for (size_t i = 0; i + 1 < fmt.get_size(); i++) {
-                if (fmt[i] == '{' && fmt[i + 1] == '}') {
-                    inner =  fmt.substring(0, i);
-                    rest = FormatString<Args...>(fmt.substring(i + 2, fmt.get_size() - i - 2));
-                    return;
-                }
+        consteval FormatString(StringView fmt) {
+            auto slot = find_formatting_slot(fmt);
+            if (!slot.has_value()) {
+                compiletime_fail("Given more arguments than expected by the format string.");
             }
 
-            compiletime_fail("Given more arguments than expected by the format string.");
+            inner = fmt.substring(0, slot->start);
+            rest = FormatString<Args...>(fmt.substring(slot->end, fmt.get_size() - slot->end));
+            format = slot->format;
         }
 
         template <size_t N>
@@ -57,6 +90,7 @@ namespace detail {
 
         StringView inner;
         FormatString<Args...> rest;
+        char format;
     };
 }
 
@@ -75,7 +109,7 @@ using FormatString = detail::FormatString<IdentityType<Args>...>;
  * The reason it is not in `detail` is because we can define other
  * overloads for our own values outside.
  */
-void print_value(StringView value);
+void print_value(StringView value, char format);
 
 /**
  * Print a single const char*.
@@ -84,7 +118,7 @@ void print_value(StringView value);
  * The reason it is not in `detail` is because we can define other
  * overloads for our own values outside.
  */
-void print_value(const char* value);
+void print_value(const char* value, char format);
 
 /**
  * Print a single int.
@@ -93,7 +127,7 @@ void print_value(const char* value);
  * The reason it is not in `detail` is because we can define other
  * overloads for our own values outside.
  */
-void print_value(int value);
+void print_value(int value, char format);
 
 /**
  * Print formatted text.
@@ -101,7 +135,7 @@ void print_value(int value);
  * Print the format string substituting `{}` with the respective argument.
  */
 inline void print(FormatString<> format) {
-    print_value(format.inner);
+    print_value(format.inner, '\0');
 }
 
 /**
@@ -111,13 +145,13 @@ inline void print(FormatString<> format) {
  */
 template <typename FirstArg, typename... Args>
 void print(FormatString<FirstArg, Args...> format, FirstArg const& first, const Args&... args) {
-    print_value(format.inner);
-    print_value(first);
+    print_value(format.inner, '\0');
+    print_value(first, format.format);
     print(format.rest, args...);
 }
 
 template <typename... Args>
 void println(FormatString<Args...> format, const Args&... args) {
     print(format, args...);
-    print_value("\n");
+    print_value("\n", '\0');
 }
