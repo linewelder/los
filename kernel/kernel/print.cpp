@@ -46,6 +46,8 @@ void print_value(const char* value, char) {
 void print_value(int value, char format) {
     if (format == 'x') {
         print_number(value, 16);
+    } else if (format == 'c') {
+        terminal::putchar(value);
     } else {
         print_number(value, 10);
     }
