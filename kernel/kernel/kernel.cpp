@@ -50,7 +50,7 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     }
 
     uint32_t ram_available = detect_available_ram(multiboot_info);
-    printf("Los (%dMB RAM Available)\n", ram_available / 1024 / 1024);
+    printf("Los (%ldMB RAM Available)\n", ram_available / 1024 / 1024);
 
     gdt::init();
     idt::init();
@@ -93,7 +93,7 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     terminal::write_cstr("Connected disks:\n");
     for (size_t i = 0; i < ide::get_disk_count(); i++) {
         const ide::Device& disk = ide::get_disk(i);
-        printf("  - %s (%d Kb) Inteface: %s\n",
+        printf("  - %s (%ld Kb) Inteface: %s\n",
             disk.model, disk.size / 2,
             (const char*[]){ "ATA", "ATAPI" }[static_cast<int>(disk.interface)]);
     };

@@ -36,7 +36,7 @@ static void unhandled_exception(
     int error_code = 0)
 {
     LOG_ERROR("Unhandled exception occured! %s", message);
-    LOG_ERROR("IP=0x%x CS=0x%x FLAGS=0x%x", frame->ip, frame->cs, frame->flags);
+    LOG_ERROR("IP=0x%lx CS=0x%x FLAGS=0x%lx", frame->ip, frame->cs, frame->flags);
 
     switch (error_code_type) {
     case ErrorCodeType::RAW:
