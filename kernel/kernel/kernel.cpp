@@ -41,7 +41,7 @@ static uint32_t detect_available_ram(multiboot_info_t* multiboot_info) {
     return ram_available;
 }
 
-extern "C"
+extern "C" [[noreturn]]
 void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     terminal::clear();
 
