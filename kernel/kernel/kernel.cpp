@@ -11,7 +11,7 @@
 #include <arch/i386/pci.h>
 #include <arch/i386/ide.h>
 #include <kernel/log.h>
-#include <kernel/printf.h>
+#include <kernel/print.h>
 #include <kernel/kpanic.h>
 #include <kernel/multiboot.h>
 #include <util/bits.h>
@@ -50,7 +50,7 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     }
 
     uint32_t ram_available = detect_available_ram(multiboot_info);
-    printf("Los (%ldMB RAM Available)\n", ram_available / 1024 / 1024);
+    println("Los ({}MB RAM Available)", ram_available / 1024 / 1024);
 
     gdt::init();
     idt::init();
@@ -62,10 +62,10 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     LOG_INFO("Initializing the PS/2 controller...");
     ps2::init();
 
-    terminal::write_cstr("Connected PS/2 devices:\n");
+    println("Connected PS/2 devices:");
     for (size_t i = 0; i < ps2::get_device_count(); i++) {
         const ps2::Device& device = ps2::get_device(i);
-        printf("  - %s (type: %x)\n",
+        println("  - {} (type: {:x})",
             device.get_type_name(), device.get_type());
     }
 
@@ -75,8 +75,8 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     terminal::write_cstr("Connected PCI devices:\n");
     for (size_t i = 0; i < pci::get_function_count(); i++) {
         const pci::Function& func = pci::get_function(i);
-        printf(
-            "  %d:%d.%d Class: %x Vendor: %x Device: %x\n",
+        println(
+            "  {}:{}.{} Class: {:x} Vendor: {:x} Device: {:x}",
             func.get_bus(), func.get_device(), func.get_function(),
             func.get_full_class(),
             func.get_vendor(), func.get_device_id());
@@ -90,10 +90,10 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
         LOG_ERROR("No IDE controller");
     }
 
-    terminal::write_cstr("Connected disks:\n");
+    println("Connected disks:");
     for (size_t i = 0; i < ide::get_disk_count(); i++) {
         const ide::Device& disk = ide::get_disk(i);
-        printf("  - %s (%ld Kb) Inteface: %s\n",
+        println("  - {} ({} Kb) Inteface: {}",
             disk.model, disk.size / 2,
             (const char*[]){ "ATA", "ATAPI" }[static_cast<int>(disk.interface)]);
     };
@@ -111,9 +111,9 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
         pic::clear_mask(1);
         enable_interrupts();
 
-        terminal::write_cstr("\nYou can type\n\n");
+        println("\nYou can type\n");
     } else {
-        terminal::write_cstr("\nNo keyboard.");
+        println("\nNo keyboard.");
     }
     for (;;) hlt();
 }
