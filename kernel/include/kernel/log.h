@@ -7,7 +7,8 @@ namespace log {
         ERROR,
     };
 
-    void log(SeverityLevel severity, const char* file, int line, const char* format, ...);
+    void log(SeverityLevel severity, const char* file, int line, const char* format, ...)
+        __attribute__((format(printf, 4, 5)));
 }
 
 #define LOG_INFO(...) log::log(log::SeverityLevel::INFO, __FILE__, __LINE__, __VA_ARGS__)

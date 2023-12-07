@@ -1,5 +1,4 @@
 #pragma once
 
-/// See: printf.
 [[noreturn]]
-void kpanic(const char* message, ...);
+void kpanic(const char* message, ...) __attribute__((format(printf, 1, 2)));
