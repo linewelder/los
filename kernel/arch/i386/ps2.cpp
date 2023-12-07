@@ -31,11 +31,11 @@ namespace ps2 {
 
         uint8_t response = 0;
         if (!try_poll(response)) {
-            LOG_ERROR("PS/2 port %d test failed, no response.",
+            LOG_ERROR("PS/2 port {} test failed, no response.",
                 port);
             return false;
         } else if (response != 0x00) {
-            LOG_ERROR("PS/2 port %d test failed, %s (code 0x%x).",
+            LOG_ERROR("PS/2 port {} test failed, {} (code 0x{:x}).",
                 port, get_port_test_fail_reason(response), response);
             return false;
         }
@@ -51,21 +51,21 @@ namespace ps2 {
 
         uint8_t response = 0;
         if (!try_poll(response)) {
-            LOG_WARN("PS/2 device %d reset failed, no response.",
+            LOG_WARN("PS/2 device {} reset failed, no response.",
                 port);
             return;
         } else if (response != 0xfa) {
-            LOG_ERROR("PS/2 device %d reset failed, received 0x%x instead of 0xfa.",
+            LOG_ERROR("PS/2 device {} reset failed, received 0x{:x} instead of 0xfa.",
                 port, response);
             return;
         }
 
         if (!try_poll(response)) {
-            LOG_ERROR("PS/2 device %d reset failed, no status code.",
+            LOG_ERROR("PS/2 device {} reset failed, no status code.",
                 port);
             return;
         } else if (response != 0xaa) {
-            LOG_ERROR("PS/2 device %d reset failed, status code 0x%x instead of 0xaa.",
+            LOG_ERROR("PS/2 device {} reset failed, status code 0x{:x} instead of 0xaa.",
                 port, response);
             return;
         }
@@ -101,7 +101,7 @@ namespace ps2 {
             LOG_ERROR("PS/2 controller self test failed, no response");
             return;
         } else if (response != 0x55) {
-            LOG_ERROR("PS/2 controller self test failed, received 0x%x instead of 0x55",
+            LOG_ERROR("PS/2 controller self test failed, received 0x{:x} instead of 0x55",
                 response);
             return;
         }
@@ -169,13 +169,13 @@ namespace ps2 {
     static bool expect_ack(const char* what, int device_id) {
         uint8_t response = 0;
         if (!try_poll(response)) {
-            LOG_ERROR("%s (PS/2 device %d) failed, didn't receive device response",
+            LOG_ERROR("{} (PS/2 device {}) failed, didn't receive device response",
                 what, device_id);
             return false;
         }
 
         if (response != 0xfa) {
-            LOG_ERROR("%s (PS/2 device %d) failed, received 0x%x instead of 0xfa",
+            LOG_ERROR("{} (PS/2 device {}) failed, received 0x{:x} instead of 0xfa",
                 what, device_id, response);
             return false;
         }

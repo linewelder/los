@@ -138,7 +138,7 @@ namespace pci {
 
     static void check_function(Function func) {
         if (!functions.push_back(func)) {
-            LOG_ERROR("Two many connected PCI device functions. The kernel supports up to %ld.",
+            LOG_ERROR("Two many connected PCI device functions. The kernel supports up to {}.",
                 functions.get_capacity());
         }
 

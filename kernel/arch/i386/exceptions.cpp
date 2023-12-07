@@ -18,7 +18,7 @@ static void report_selector(int selector) {
     int index = get_bit_range(selector, 3, 13);
     const char* table = TABLE_NAME[get_bit_range(selector, 1, 2)];
 
-    LOG_ERROR("Index 0x%x in %s%s\n",
+    LOG_ERROR("Index 0x{:x} in {}{}\n",
         index, table,
         external ? ", exception originated externally to the processor" : "");
 }
@@ -35,12 +35,12 @@ static void unhandled_exception(
     ErrorCodeType error_code_type = ErrorCodeType::NONE,
     int error_code = 0)
 {
-    LOG_ERROR("Unhandled exception occured! %s", message);
-    LOG_ERROR("IP=0x%lx CS=0x%x FLAGS=0x%lx", frame->ip, frame->cs, frame->flags);
+    LOG_ERROR("Unhandled exception occured! {}", message);
+    LOG_ERROR("IP=0x{:x} CS=0x{:x} FLAGS=0x{:x}", frame->ip, frame->cs, frame->flags);
 
     switch (error_code_type) {
     case ErrorCodeType::RAW:
-        LOG_ERROR("Error code: %x", error_code);
+        LOG_ERROR("Error code: {:x}", error_code);
         break;
     case ErrorCodeType::SELECTOR:
         report_selector(error_code);

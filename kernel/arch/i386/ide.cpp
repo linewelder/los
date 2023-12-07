@@ -459,10 +459,10 @@ namespace ide {
                 case IdentifyResultStatus::NoDevice:
                     break;
                 case IdentifyResultStatus::UnknownDeviceType:
-                    LOG_ERROR("Error identifying disk %d: Unknown device type\n", id);
+                    LOG_ERROR("Error identifying disk {}: Unknown device type\n", id);
                     break;
                 case IdentifyResultStatus::RequestError:
-                    LOG_ERROR("Error identifying disk %d: Device returned error code %x\n",
+                    LOG_ERROR("Error identifying disk {}: Device returned error code {:x}\n",
                         id, result.error_byte);
                     break;
                 }
