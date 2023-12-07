@@ -1,13 +1,11 @@
-#include <arch/i386/exceptions.h>
+#include <arch/i386/exceptions.hpp>
 
-#include <stdarg.h>
-
-#include <arch/i386/asm.h>
-#include <arch/i386/gdt.h>
-#include <arch/i386/idt.h>
-#include <kernel/kpanic.h>
-#include <kernel/log.h>
-#include <util/bits.h>
+#include <arch/i386/asm.hpp>
+#include <arch/i386/gdt.hpp>
+#include <arch/i386/idt.hpp>
+#include <kernel/kpanic.hpp>
+#include <kernel/log.hpp>
+#include <util/bits.hpp>
 
 static constexpr char const* TABLE_NAME[] = {
     "GDT", "IDT", "LDT", "IDT"

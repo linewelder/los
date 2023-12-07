@@ -1,6 +1,6 @@
-#include <arch/i386/gdt.h>
+#include <arch/i386/gdt.hpp>
 
-#include <util/bits.h>
+#include <util/bits.hpp>
 
 namespace gdt {
     static EncodedGdtEntry gdt[3];

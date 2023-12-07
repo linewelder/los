@@ -1,8 +1,8 @@
-#include <arch/i386/pic.h>
+#include <arch/i386/pic.hpp>
 
 #include <stdint.h>
-#include <arch/i386/asm.h>
-#include <util/bits.h>
+#include <arch/i386/asm.hpp>
+#include <util/bits.hpp>
 
 namespace pic {
     static constexpr uint8_t PIC1_VECTOR_OFFSET = 0x20;

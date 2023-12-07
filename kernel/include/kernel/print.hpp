@@ -10,9 +10,9 @@
 #pragma once
 
 #include <stdint.h>
-#include <util/option.h>
-#include <util/string_view.h>
-#include <util/util.h>
+#include <util/option.hpp>
+#include <util/string_view.hpp>
+#include <util/util.hpp>
 
 namespace detail {
     struct FormattingSlot {

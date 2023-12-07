@@ -1,6 +1,6 @@
 #pragma once
 
-#include <arch/i386/idt.h>
+#include <arch/i386/idt.hpp>
 
 namespace keyboard {
     enum class Key {

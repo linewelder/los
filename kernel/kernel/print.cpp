@@ -1,6 +1,6 @@
-#include <kernel/print.h>
+#include <kernel/print.hpp>
 
-#include <arch/i386/terminal.h>
+#include <arch/i386/terminal.hpp>
 
 static void print_number(int value, int base) {
     if (value == 0) {

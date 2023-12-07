@@ -1,11 +1,11 @@
-#include <arch/i386/ps2.h>
+#include <arch/i386/ps2.hpp>
 
 #include <stdint.h>
-#include <arch/i386/asm.h>
-#include <arch/i386/pic.h>
-#include <kernel/log.h>
-#include <util/bits.h>
-#include <util/inplace_vector.h>
+#include <arch/i386/asm.hpp>
+#include <arch/i386/pic.hpp>
+#include <kernel/log.hpp>
+#include <util/bits.hpp>
+#include <util/inplace_vector.hpp>
 
 namespace ps2 {
     static InplaceVector<Device, 2> devices;

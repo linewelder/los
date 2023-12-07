@@ -1,8 +1,8 @@
 #pragma once
 
-#include <arch/i386/asm.h>
-#include <arch/i386/terminal.h>
-#include <kernel/print.h>
+#include <arch/i386/asm.hpp>
+#include <arch/i386/terminal.hpp>
+#include <kernel/print.hpp>
 
 template <typename... Args>
 [[noreturn]]

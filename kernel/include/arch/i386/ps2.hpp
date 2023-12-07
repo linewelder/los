@@ -2,8 +2,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <arch/i386/idt.h>
-#include <util/option.h>
+#include <arch/i386/idt.hpp>
+#include <util/option.hpp>
 
 namespace ps2 {
     class Device {

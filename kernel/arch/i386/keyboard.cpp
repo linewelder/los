@@ -1,8 +1,8 @@
-#include <arch/i386/keyboard.h>
+#include <arch/i386/keyboard.hpp>
 
-#include <arch/i386/asm.h>
-#include <arch/i386/pic.h>
-#include <arch/i386/ps2.h>
+#include <arch/i386/asm.hpp>
+#include <arch/i386/pic.hpp>
+#include <arch/i386/ps2.hpp>
 
 namespace keyboard {
     static constexpr char get_key_character(uint16_t scancode) {

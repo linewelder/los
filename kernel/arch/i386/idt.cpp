@@ -1,6 +1,6 @@
-#include <arch/i386/idt.h>
+#include <arch/i386/idt.hpp>
 
-#include <util/bits.h>
+#include <util/bits.hpp>
 
 namespace idt {
     static EncodedIdtEntry idt[256];

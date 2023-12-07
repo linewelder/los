@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <arch/i386/pci.h>
-#include <disk/disk.h>
+#include <arch/i386/pci.hpp>
+#include <disk/disk.hpp>
 
 namespace ide {
     enum class ChannelType {

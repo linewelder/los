@@ -1,20 +1,20 @@
 #include <stdint.h>
 
-#include <arch/i386/asm.h>
-#include <arch/i386/gdt.h>
-#include <arch/i386/idt.h>
-#include <arch/i386/exceptions.h>
-#include <arch/i386/pic.h>
-#include <arch/i386/ps2.h>
-#include <arch/i386/keyboard.h>
-#include <arch/i386/terminal.h>
-#include <arch/i386/pci.h>
-#include <arch/i386/ide.h>
-#include <kernel/log.h>
-#include <kernel/print.h>
-#include <kernel/kpanic.h>
+#include <arch/i386/asm.hpp>
+#include <arch/i386/gdt.hpp>
+#include <arch/i386/idt.hpp>
+#include <arch/i386/exceptions.hpp>
+#include <arch/i386/pic.hpp>
+#include <arch/i386/ps2.hpp>
+#include <arch/i386/keyboard.hpp>
+#include <arch/i386/terminal.hpp>
+#include <arch/i386/pci.hpp>
+#include <arch/i386/ide.hpp>
+#include <kernel/log.hpp>
+#include <kernel/print.hpp>
+#include <kernel/kpanic.hpp>
 #include <kernel/multiboot.h>
-#include <util/bits.h>
+#include <util/bits.hpp>
 
 static uint32_t detect_available_ram(multiboot_info_t* multiboot_info) {
     bool mmap_valid = get_bit(multiboot_info->flags, 6);

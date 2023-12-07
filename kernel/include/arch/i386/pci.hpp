@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <util/option.h>
+#include <util/option.hpp>
 
 namespace pci {
     class Function {

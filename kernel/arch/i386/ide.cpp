@@ -1,9 +1,9 @@
-#include <arch/i386/ide.h>
+#include <arch/i386/ide.hpp>
 
-#include <arch/i386/asm.h>
-#include <kernel/log.h>
-#include <util/bits.h>
-#include <util/inplace_vector.h>
+#include <arch/i386/asm.hpp>
+#include <kernel/log.hpp>
+#include <util/bits.hpp>
+#include <util/inplace_vector.hpp>
 
 namespace ide {
     // Flags in the Status register.
