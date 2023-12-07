@@ -1,6 +1,10 @@
 /**
  * @file
  * Type-safe formatted printing.
+ *
+ * EXAMPLES:
+ * println("Hello, {}!", "world");
+ * println("The number: {}, in hexadecimal: {:x}.", 42, 42);
  */
 
 #pragma once
