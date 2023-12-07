@@ -9,7 +9,7 @@ You have to check manually using has_value().
 */
 
 template <typename T>
-class Option {
+class [[nodiscard]] Option {
 public:
     constexpr Option() : exists(false) {}
     constexpr Option(T value) : value(value), exists(true) {}
@@ -57,7 +57,9 @@ namespace detail {
 }
 
 template <typename T>
-class Option<T&> : public detail::OptionRefBase<T&, T*> {
+class [[nodiscard]] Option<T&>
+    : public detail::OptionRefBase<T&, T*>
+{
 public:
     constexpr Option() {
         this->ptr = nullptr;
@@ -69,7 +71,9 @@ public:
 };
 
 template <typename T>
-class Option<const T&> : public detail::OptionRefBase<const T&, const T*> {
+class [[nodiscard]] Option<const T&>
+    : public detail::OptionRefBase<const T&, const T*>
+{
 public:
     constexpr Option() {
         this->ptr = nullptr;
@@ -102,7 +106,9 @@ namespace detail {
 }
 
 template <typename T>
-class Option<T*> : public detail::OptionPtrBase<T*> {
+class [[nodiscard]] Option<T*>
+    : public detail::OptionPtrBase<T*>
+{
 public:
     constexpr Option() {
         this->ptr = nullptr;
@@ -115,7 +121,9 @@ public:
 
 
 template <typename T>
-class Option<const T*> : public detail::OptionPtrBase<const T*> {
+class [[nodiscard]] Option<const T*>
+    : public detail::OptionPtrBase<const T*>
+{
 public:
     constexpr Option() {
         this->ptr = nullptr;
