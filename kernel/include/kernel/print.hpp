@@ -133,6 +133,12 @@ void print_value(const char* value, char format);
  */
 void print_value(int value, char format);
 
+template <typename T>
+void print_value(const T* pointer, char) {
+    print_value("0x", '\0');
+    print_value(reinterpret_cast<uintptr_t>(pointer), 'x');
+}
+
 /**
  * Print formatted text.
  *
