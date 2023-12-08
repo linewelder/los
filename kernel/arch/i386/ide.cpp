@@ -403,19 +403,6 @@ namespace ide {
         return true;
     }
 
-    static const IDiskVmt idisk_vmt {
-        .read = [](const void* device, uint64_t lba, uint8_t sector_count, void* buffer) -> bool {
-            return reinterpret_cast<const Device*>(device)->read(lba, sector_count, buffer);
-        },
-        .write = [](const void* device, uint64_t lba, uint8_t sector_count, void* buffer) -> bool {
-            return reinterpret_cast<const Device*>(device)->write(lba, sector_count, buffer);
-        },
-    };
-
-    Device::operator IDisk() const {
-        return IDisk(this, &idisk_vmt);
-    }
-
     static InplaceVector<ide::Device, 4> disks;
 
     const ide::Device& get_disk(size_t id) {

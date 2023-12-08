@@ -46,7 +46,7 @@ namespace ide {
         REQUEST_NOT_READY,
     };
 
-    class Device {
+    class Device : public IDisk {
     public:
         constexpr Device()
             : channel_type(ChannelType::PRIMARY), drive_type(DriveType::MASTER) {}
@@ -55,10 +55,8 @@ namespace ide {
 
         IdentifyResult identify();
 
-        bool read(uint64_t lba, uint8_t sector_count, void* buffer) const;
-        bool write(uint64_t lba, uint8_t sector_count, void* buffer) const;
-
-        operator IDisk() const;
+        bool read(uint64_t lba, uint8_t sector_count, void* buffer) const override;
+        bool write(uint64_t lba, uint8_t sector_count, void* buffer) const override;
 
         ChannelType channel_type;
         DriveType drive_type;
