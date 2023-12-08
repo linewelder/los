@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <util/memory.hpp>
+
 /**
  * Dynamic array without dynamic memory allocation.
  */
@@ -12,15 +14,16 @@ public:
     constexpr InplaceVector() : count(0) {}
 
     /**
-     * Append the value to the end of the array and return true.
-     * If no more space left, return false.
+     * Append `value` to the end of the array using the copy constructor
+     * and return true. If no more space left, return false.
      */
     bool push_back(const T& value) {
         if (count == CAPACITY) {
             return false;
         }
 
-        reinterpret_cast<T*>(data)[count] = value;
+        T* slot = &reinterpret_cast<T*>(data)[count];
+        new (slot) T(value);
         count++;
         return true;
     }
@@ -42,6 +45,6 @@ public:
     }
 
 private:
-    uint8_t data[sizeof(T) * CAPACITY]; // Raw byte array to avoid needing to initialize the elements.
+    alignas(T) uint8_t data[sizeof(T) * CAPACITY]; // Raw byte array to avoid needing to initialize the elements.
     size_t count;
 };
