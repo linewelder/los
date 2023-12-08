@@ -100,7 +100,7 @@ static void general_protection_fault(idt::InterruptFrame* frame, int selector) {
 
 __attribute__((interrupt))
 static void page_fault(idt::InterruptFrame* frame, int error_code) {
-    unhandled_exception("Page fault (Error code: %x)", frame,
+    unhandled_exception("Page fault", frame,
         ErrorCodeType::RAW, error_code);
 }
 
