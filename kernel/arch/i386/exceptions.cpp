@@ -21,10 +21,57 @@ static void report_selector(int selector) {
         external ? ", exception originated externally to the processor" : "");
 }
 
+static void report_page_fault(int selector) {
+    bool write = get_bit(selector, 1);
+    bool execute = get_bit(selector, 4);
+    bool userspace = get_bit(selector, 2);
+
+    const char* action;
+    if (execute) {
+        action = "execute";
+    } else if (write) {
+        action = "write to";
+    } else {
+        action = "read";
+    }
+
+    const char* ring = userspace ? "userspace" : "kernel";
+
+    size_t address;
+    asm volatile("movl %%cr2, %0" : "=r"(address));
+    LOG_ERROR("Trying to {} address {} by {}",
+        action, reinterpret_cast<void*>(address), ring);
+
+    if (get_bit(selector, 0)) {
+        LOG_ERROR("Page present");
+    } else {
+        LOG_ERROR("Page unpresent");
+    }
+
+    // Flags that we do not know what they mean.
+
+    if (get_bit(selector, 3)) {
+        LOG_ERROR("Reserved write");
+    }
+
+    if (get_bit(selector, 5)) {
+        LOG_ERROR("Error caused by protection-key violation");
+    }
+
+    if (get_bit(selector, 6)) {
+        LOG_ERROR("Error caused by shadow stack access");
+    }
+
+    if (get_bit(selector, 15)) {
+        LOG_ERROR("SGX violation");
+    }
+}
+
 enum class ErrorCodeType {
     NONE,
     RAW,
     SELECTOR,
+    PAGE_FAULT,
 };
 
 static void unhandled_exception(
@@ -42,6 +89,9 @@ static void unhandled_exception(
         break;
     case ErrorCodeType::SELECTOR:
         report_selector(error_code);
+        break;
+    case ErrorCodeType::PAGE_FAULT:
+        report_page_fault(error_code);
         break;
     case ErrorCodeType::NONE:
         break;
@@ -101,7 +151,7 @@ static void general_protection_fault(idt::InterruptFrame* frame, int selector) {
 __attribute__((interrupt))
 static void page_fault(idt::InterruptFrame* frame, int error_code) {
     unhandled_exception("Page fault", frame,
-        ErrorCodeType::RAW, error_code);
+        ErrorCodeType::PAGE_FAULT, error_code);
 }
 
 __attribute__((interrupt))
