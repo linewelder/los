@@ -47,12 +47,23 @@ static void print_number_with_base(T value, int base) {
 
 template <typename T>
 static void print_number(T value, char format) {
-    if (format == 'x') {
+    switch (format) {
+    case 'x':
         print_number_with_base(value, 16);
-    } else if (format == 'c') {
+        break;
+
+    case 'p':
+        print_value("0x", '\0');
+        print_number_with_base(value, 16);
+        break;
+
+    case 'c':
         terminal::putchar(value);
-    } else {
+        break;
+
+    default:
         print_number_with_base(value, 10);
+        break;
     }
 }
 

@@ -5,6 +5,7 @@
  * EXAMPLES:
  * println("Hello, {}!", "world");
  * println("The number: {}, in hexadecimal: {:x}.", 42, 42);
+ * println("A pointer: {:p}.", 0x100000);
  */
 
 #pragma once
@@ -126,8 +127,7 @@ void print_value(uint64_t value, char format);
 
 template <typename T>
 void print_value(const T* pointer, char) {
-    print_value("0x", '\0');
-    print_value(reinterpret_cast<uintptr_t>(pointer), 'x');
+    print_value(reinterpret_cast<uintptr_t>(pointer), 'p');
 }
 
 /**
