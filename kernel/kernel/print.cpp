@@ -2,9 +2,21 @@
 
 #include <arch/i386/terminal.hpp>
 
-static void print_number(int value, int base) {
+void print_value(StringView value, char) {
+    for (size_t i = 0; i < value.get_size(); i++) {
+        terminal::putchar(value[i]);
+    }
+}
+
+void print_value(const char* value, char) {
+    terminal::write_cstr(value);
+}
+
+template <typename T>
+static void print_number_with_base(T value, int base) {
     if (value == 0) {
         terminal::putchar('0');
+        return;
     }
 
     if (value < 0) {
@@ -12,7 +24,7 @@ static void print_number(int value, int base) {
         value = -value;
     }
 
-    constexpr int BUF_SIZE = 12;
+    constexpr int BUF_SIZE = 18; // Enough for max uint64_t.
     char buf[BUF_SIZE];
     int buf_start = BUF_SIZE;
 
@@ -33,24 +45,27 @@ static void print_number(int value, int base) {
     }
 }
 
-void print_value(StringView value, char) {
-    for (size_t i = 0; i < value.get_size(); i++) {
-        terminal::putchar(value[i]);
-    }
-}
-
-void print_value(const char* value, char) {
-    terminal::write_cstr(value);
-}
-
-void print_value(int value, char format) {
+template <typename T>
+static void print_number(T value, char format) {
     if (format == 'x') {
-        print_number(value, 16);
+        print_number_with_base(value, 16);
     } else if (format == 'c') {
         terminal::putchar(value);
     } else {
-        print_number(value, 10);
+        print_number_with_base(value, 10);
     }
+}
+
+void print_value(int value, char format) {
+    print_number(value, format);
+}
+
+void print_value(uint32_t value, char format) {
+    print_number(value, format);
+}
+
+void print_value(uint64_t value, char format) {
+    print_number(value, format);
 }
 
 void println() {

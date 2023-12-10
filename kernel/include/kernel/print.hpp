@@ -107,31 +107,22 @@ template <typename... Args>
 using FormatString = detail::FormatString<IdentityType<Args>...>;
 
 /**
- * Print a single StringView.
+ * print_value - Print a single value.
  *
  * Not really meant to be used directly.
  * The reason it is not in `detail` is because we can define other
  * overloads for our own values outside.
  */
+
 void print_value(StringView value, char format);
 
-/**
- * Print a single const char*.
- *
- * Not really meant to be used directly.
- * The reason it is not in `detail` is because we can define other
- * overloads for our own values outside.
- */
 void print_value(const char* value, char format);
 
-/**
- * Print a single int.
- *
- * Not really meant to be used directly.
- * The reason it is not in `detail` is because we can define other
- * overloads for our own values outside.
- */
 void print_value(int value, char format);
+
+void print_value(uint32_t value, char format);
+
+void print_value(uint64_t value, char format);
 
 template <typename T>
 void print_value(const T* pointer, char) {
