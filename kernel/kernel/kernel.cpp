@@ -14,32 +14,7 @@
 #include <kernel/print.hpp>
 #include <kernel/kpanic.hpp>
 #include <kernel/multiboot.h>
-#include <util/bits.hpp>
-
-static uint32_t detect_available_ram(multiboot_info_t* multiboot_info) {
-    bool mmap_valid = get_bit(multiboot_info->flags, 6);
-    if (!mmap_valid) {
-        kpanic("Invalid memory map");
-    }
-
-    uint32_t ram_available = 0;
-    for (
-        uint32_t offset = 0;
-        offset < multiboot_info->mmap_length;
-        offset += sizeof(multiboot_memory_map_t))
-    {
-        multiboot_memory_map_t* block =
-            reinterpret_cast<multiboot_memory_map_t*>(
-                multiboot_info->mmap_addr + offset);
-
-        // Available RAM above 1M.
-        if (block->type == MULTIBOOT_MEMORY_AVAILABLE && block->addr >= 0x10'0000) {
-            ram_available += static_cast<uint32_t>(block->len);
-        }
-    }
-
-    return ram_available;
-}
+#include <memory/frame_allocator.hpp>
 
 extern "C" [[noreturn]]
 void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
@@ -49,12 +24,13 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
         kpanic("Invalid Multiboot magic number");
     }
 
-    uint32_t ram_available = detect_available_ram(multiboot_info);
-    println("Los ({}MB RAM Available)", ram_available / 1024 / 1024);
-
     gdt::init();
     idt::init();
     register_exception_handlers();
+
+    frame_allocator::init(multiboot_info);
+    println("Los ({}MiB RAM Available)",
+        frame_allocator::get_total_memory() / 1024 / 1024);
 
     LOG_INFO("Initializing PIC...");
     pic::init();
