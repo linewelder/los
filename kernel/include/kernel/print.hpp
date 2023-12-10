@@ -151,8 +151,14 @@ void print(FormatString<FirstArg, Args...> format, FirstArg const& first, const 
     print(format.rest, args...);
 }
 
+/**
+ * Print a new line character.
+ */
 void println();
 
+/**
+ * Print formatted text followed by a new line character.
+ */
 template <typename... Args>
 void println(FormatString<Args...> format, const Args&... args) {
     print(format, args...);
