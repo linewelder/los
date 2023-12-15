@@ -68,10 +68,18 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
 
     println("Connected disks:");
     for (size_t i = 0; i < ide::get_disk_count(); i++) {
+        auto get_interface_name = [](ide::InterfaceType interface) {
+            switch (interface) {
+                case ide::InterfaceType::ATA: return "ATA";
+                case ide::InterfaceType::ATAPI: return "ATAPI";
+                default: return "<unkown>";
+            }
+        };
+
         const ide::Device& disk = ide::get_disk(i);
         println("  - {} ({} Kb) Inteface: {}",
             disk.model, disk.size / 2,
-            (const char*[]){ "ATA", "ATAPI" }[static_cast<int>(disk.interface)]);
+            get_interface_name(disk.interface));
     };
 
     Option<const ps2::Device&> keyboard = ps2::find_device_with_type(0xab83);
