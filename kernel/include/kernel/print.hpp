@@ -41,7 +41,7 @@ namespace detail {
                 compiletime_fail("Malformed formatting slot.");
             }
 
-            return (FormattingSlot){
+            return FormattingSlot{
                 .start = start,
                 .end = i,
                 .format = format,
