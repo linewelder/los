@@ -5,6 +5,7 @@
 
 #include <util/assert.hpp>
 #include <util/memory.hpp>
+#include <util/span.hpp>
 
 /**
  * Dynamic array without dynamic memory allocation.
@@ -45,6 +46,14 @@ public:
 
     constexpr size_t get_capacity() const {
         return CAPACITY;
+    }
+
+    constexpr operator Span<const T>() const {
+        return { reinterpret_cast<const T*>(data), count };
+    }
+
+    constexpr operator Span<T>() const {
+        return { reinterpret_cast<T*>(data), count };
     }
 
 private:

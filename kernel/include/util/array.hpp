@@ -25,6 +25,14 @@ public:
         return SIZE;
     }
 
+    constexpr operator Span<T>() {
+        return { data, SIZE };
+    }
+
+    constexpr operator Span<const T>() const {
+        return { data, SIZE };
+    }
+
     T data[SIZE];
 };
 
