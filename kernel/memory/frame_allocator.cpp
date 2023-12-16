@@ -4,6 +4,7 @@
 #include <kernel/log.hpp>
 #include <memory/kernel_location.hpp>
 #include <util/bits.hpp>
+#include <util/span.hpp>
 #include <util/math.hpp>
 
 namespace frame_allocator {
@@ -42,11 +43,12 @@ namespace frame_allocator {
             reinterpret_cast<paging::PhysAddr>(&kernel_end);
         MemoryRegion available { kernel_end_addr, MAX_ADDRESS - kernel_end_addr };
 
-        auto mmap = reinterpret_cast<const multiboot_memory_map_t*>(info->mmap_addr);
-        size_t mmap_length = info->mmap_length / sizeof(multiboot_memory_map_t);
+        Span<const multiboot_memory_map_t> mmap{
+            .start = reinterpret_cast<const multiboot_memory_map_t*>(info->mmap_addr),
+            .size = info->mmap_length / sizeof(multiboot_memory_map_t),
+        };
 
-        for (size_t i = 0; i < mmap_length; i++) {
-            const auto& region = mmap[i];
+        for (const auto& region : mmap) {
             if (region.type != MULTIBOOT_MEMORY_AVAILABLE) {
                 continue;
             }
