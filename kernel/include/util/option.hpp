@@ -1,5 +1,7 @@
 #pragma once
 
+#include <util/util.hpp>
+
 /*
 Option<T> - represents an item that be present or not.
 
@@ -12,7 +14,24 @@ template <typename T>
 class [[nodiscard]] Option {
 public:
     constexpr Option() : exists(false) {}
-    constexpr Option(T value) : value(value), exists(true) {}
+
+    constexpr Option(const T& value)
+        : value(value), exists(true) {}
+
+    constexpr Option& operator=(const T& value) {
+        this->value = value;
+        exists = true;
+        return *this;
+    }
+
+    constexpr Option(T&& value)
+        : value(move(value)), exists(true) {}
+
+    constexpr Option& operator=(T&& value) {
+        this->value = move(value);
+        exists = true;
+        return *this;
+    }
 
     constexpr bool has_value() const {
         return exists;
