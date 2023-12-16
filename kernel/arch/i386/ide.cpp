@@ -410,6 +410,23 @@ namespace ide {
         return true;
     }
 
+    size_t Device::get_size() const {
+        return size;
+    }
+
+    InterfaceType Device::get_interface_type() const {
+        return interface;
+    }
+
+    StringView Device::get_model() const {
+        size_t length = 0;
+        while (length < model.get_size() && model[length] != '\0') {
+            length++;
+        }
+
+        return { model.data, length };
+    }
+
     static InplaceVector<ide::Device, 4> disks;
 
     Span<const ide::Device> get_disks() {

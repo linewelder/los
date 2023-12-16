@@ -75,8 +75,8 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
         };
 
         println("  - {} ({} Kb) Inteface: {}",
-            disk.model, disk.size / 2,
-            get_interface_name(disk.interface));
+            disk.get_model(), disk.get_size() / 2,
+            get_interface_name(disk.get_interface_type()));
     };
 
     Option<const ps2::Device&> keyboard = ps2::find_device_with_type(0xab83);
