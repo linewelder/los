@@ -180,9 +180,7 @@ namespace ide {
             return PollingResult::SUCCESS;
         }
 
-        PollingResult read_sectors(uint8_t sector_count, void* buffer) const {
-            uint8_t* byte_buffer = reinterpret_cast<uint8_t*>(buffer);
-
+        PollingResult read_sectors(uint8_t sector_count, Span<uint8_t> buffer) const {
             for (uint8_t i = 0; i < sector_count; i++) {
                 PollingResult result = poll(true);
                 if (result != PollingResult::SUCCESS) {
@@ -191,22 +189,20 @@ namespace ide {
 
                 for (int j = 0; j < 256; j++) {
                     uint16_t word = read_data();
-                    byte_buffer[2 * j] = get_bit_range(word, 0, 8);
-                    byte_buffer[2 * j + 1] = get_bit_range(word, 8, 8);
+                    buffer[2 * j] = get_bit_range(word, 0, 8);
+                    buffer[2 * j + 1] = get_bit_range(word, 8, 8);
                 }
             }
 
             return PollingResult::SUCCESS;
         }
 
-        PollingResult write_sectors(uint8_t sector_count, void* buffer) const {
-            uint8_t* byte_buffer = reinterpret_cast<uint8_t*>(buffer);
-
+        PollingResult write_sectors(uint8_t sector_count, Span<uint8_t> buffer) const {
             for (uint8_t i = 0; i < sector_count; i++) {
                 poll(false);
                 for (int j = 0; j < 256; j++) {
-                    write_data(byte_buffer[2 * j] |
-                        (byte_buffer[2 * j + 1] << 8));
+                    write_data(buffer[2 * j] |
+                        (buffer[2 * j + 1] << 8));
                 }
             }
 
@@ -309,7 +305,10 @@ namespace ide {
      * Access the drive (read or write).
      */
     PollingResult Device::access(
-        Direction direction, uint64_t lba, uint8_t sector_count, void* buffer) const
+        Direction direction,
+        uint64_t lba,
+        uint8_t sector_count,
+        Span<uint8_t> buffer) const
     {
         enum class AddressMode {
             CHS,
@@ -394,11 +393,11 @@ namespace ide {
         }
     }
 
-    bool Device::read(uint64_t lba, uint8_t sector_count, void* buffer) const {
+    bool Device::read(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const {
         return access(Direction::READ, lba, sector_count, buffer) == PollingResult::SUCCESS;
     }
 
-    bool Device::write(uint64_t lba, uint8_t sector_count, void* buffer) const {
+    bool Device::write(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const {
         access(Direction::WRITE, lba, sector_count, buffer);
         return true;
     }

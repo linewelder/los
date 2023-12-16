@@ -55,8 +55,8 @@ namespace ide {
 
         IdentifyResult identify();
 
-        bool read(uint64_t lba, uint8_t sector_count, void* buffer) const override;
-        bool write(uint64_t lba, uint8_t sector_count, void* buffer) const override;
+        bool read(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const override;
+        bool write(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const override;
 
         ChannelType channel_type;
         DriveType drive_type;
@@ -72,7 +72,10 @@ namespace ide {
          * Access the drive (read or write).
          */
         PollingResult access(
-            Direction direction, uint64_t lba, uint8_t sector_count, void* buffer) const;
+            Direction direction,
+            uint64_t lba,
+            uint8_t sector_count,
+            Span<uint8_t> buffer) const;
     };
 
     void init(const pci::Function& func);
