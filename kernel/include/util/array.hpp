@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <util/assert.hpp>
+#include <util/span.hpp>
 
 /**
  * Wrapper around an array.
