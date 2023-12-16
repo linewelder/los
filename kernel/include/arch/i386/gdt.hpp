@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <util/array.hpp>
 
 namespace gdt {
     /// Must be set for valid segments.
@@ -29,7 +30,7 @@ namespace gdt {
     constexpr uint8_t FLAG_LONG_MODE = 1 << 1;
 
     struct EncodedGdtEntry {
-        uint8_t data[8];
+        Array<uint8_t, 8> data;
     };
 
     struct GdtEntry {

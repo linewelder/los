@@ -2,6 +2,7 @@
 
 #include <arch/i386/asm.hpp>
 #include <kernel/log.hpp>
+#include <util/array.hpp>
 #include <util/bits.hpp>
 #include <util/inplace_vector.hpp>
 #include <util/math.hpp>
@@ -213,10 +214,12 @@ namespace ide {
         uint16_t base_port;
         uint16_t control_base_port;
         uint16_t bus_master_port;
-    } channels[2] = {
+    };
+
+    Array<Channel, 2> channels = {{
         { 0x1f0, 0x3f6, 0 },
         { 0x170, 0x376, 0 },
-    };
+    }};
 
     IdentifyResult Device::identify() {
         Channel& channel = channels[static_cast<int>(channel_type)];
@@ -315,7 +318,7 @@ namespace ide {
             LBA28,
             LBA48,
         } address_mode;
-        uint8_t lba_io[6];
+        Array<uint8_t, 6> lba_io;
         uint8_t head;
 
         if (lba >= 0x1000'0000) {
@@ -413,7 +416,7 @@ namespace ide {
     }
 
     void init(const pci::Function& func) {
-        uint16_t bars[5];
+        Array<uint16_t, 5> bars;
         for (uint8_t i = 0; i < 5; i++) {
             bars[i] = func.get_bar_io(i);
         }

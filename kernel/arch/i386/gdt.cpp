@@ -1,9 +1,10 @@
 #include <arch/i386/gdt.hpp>
 
+#include <util/array.hpp>
 #include <util/bits.hpp>
 
 namespace gdt {
-    static EncodedGdtEntry gdt[3];
+    static Array<EncodedGdtEntry, 3> gdt;
 
     static void encode_gdt_entry(EncodedGdtEntry& target, GdtEntry desc) {
         target.data[0] = get_bit_range(desc.limit, 0, 8);

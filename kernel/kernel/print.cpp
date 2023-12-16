@@ -1,6 +1,7 @@
 #include <kernel/print.hpp>
 
 #include <arch/i386/terminal.hpp>
+#include <util/array.hpp>
 
 void print_value(StringView value, char) {
     for (size_t i = 0; i < value.get_size(); i++) {
@@ -25,7 +26,7 @@ static void print_number_with_base(T value, int base) {
     }
 
     constexpr int BUF_SIZE = 18; // Enough for max uint64_t.
-    char buf[BUF_SIZE];
+    Array<char, BUF_SIZE> buf;
     int buf_start = BUF_SIZE;
 
     while (value) {

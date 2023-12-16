@@ -5,9 +5,10 @@
 #include <arch/i386/idt.hpp>
 #include <kernel/kpanic.hpp>
 #include <kernel/log.hpp>
+#include <util/array.hpp>
 #include <util/bits.hpp>
 
-static constexpr char const* TABLE_NAME[] = {
+static constexpr Array TABLE_NAME = {
     "GDT", "IDT", "LDT", "IDT"
 };
 
