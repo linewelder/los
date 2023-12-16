@@ -33,9 +33,9 @@ namespace idt {
     typedef void (*Handler)(InterruptFrame*);
     typedef void (*ErrorCodeHandler)(InterruptFrame*, int);
 
-    void register_interrupt(int vector, Handler handler);
-    void register_trap(int vector, Handler handler);
-    void register_trap(int vector, ErrorCodeHandler handler);
+    void register_interrupt(uint8_t vector, Handler handler);
+    void register_trap(uint8_t vector, Handler handler);
+    void register_trap(uint8_t vector, ErrorCodeHandler handler);
 
     void init();
 };

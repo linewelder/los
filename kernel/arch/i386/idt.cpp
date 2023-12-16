@@ -1,12 +1,12 @@
 #include <arch/i386/idt.hpp>
 
+#include <util/array.hpp>
 #include <util/bits.hpp>
 
 namespace idt {
-    static EncodedIdtEntry idt[256];
+    static Array<EncodedIdtEntry, 256> idt;
 
-    static void register_gate(int vector, void* handler, uint8_t attribute_type) {
-        uint32_t address = reinterpret_cast<uint32_t>(handler);
+    static void register_gate(uint8_t vector, uint32_t address, uint8_t attribute_type) {
         idt[vector].offset_1 = get_bit_range(address, 0, 16);
         idt[vector].offset_2 = get_bit_range(address, 16, 16);
         idt[vector].segment = 0x08;
@@ -14,16 +14,16 @@ namespace idt {
         idt[vector].attributes = ATTR_VALID | ATTR_RING(3) | attribute_type;
     }
 
-    void register_interrupt(int vector, Handler handler) {
-        register_gate(vector, reinterpret_cast<void*>(handler), ATTR_32_BIT_INTERRUPT);
+    void register_interrupt(uint8_t vector, Handler handler) {
+        register_gate(vector, reinterpret_cast<uint32_t>(handler), ATTR_32_BIT_INTERRUPT);
     }
 
-    void register_trap(int vector, Handler handler) {
-        register_gate(vector, reinterpret_cast<void*>(handler), ATTR_32_BIT_TRAP);
+    void register_trap(uint8_t vector, Handler handler) {
+        register_gate(vector, reinterpret_cast<uint32_t>(handler), ATTR_32_BIT_TRAP);
     }
 
-    void register_trap(int vector, ErrorCodeHandler handler) {
-        register_gate(vector, reinterpret_cast<void*>(handler), ATTR_32_BIT_TRAP);
+    void register_trap(uint8_t vector, ErrorCodeHandler handler) {
+        register_gate(vector, reinterpret_cast<uint32_t>(handler), ATTR_32_BIT_TRAP);
     }
 
     struct __attribute__((packed)) {
