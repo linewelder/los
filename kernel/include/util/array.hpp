@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <util/assert.hpp>
 
 /**
  * Wrapper around an array.
@@ -10,10 +11,12 @@ template <typename T, size_t SIZE>
 struct Array {
 public:
     constexpr const T& operator[](size_t index) const {
+        ASSERT(index < SIZE);
         return data[index];
     }
 
     constexpr T& operator[](size_t index) {
+        ASSERT(index < SIZE);
         return data[index];
     }
 

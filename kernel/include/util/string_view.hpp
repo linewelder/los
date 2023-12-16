@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <util/assert.hpp>
 
 /**
  * A const slice of a string. Not null-terminated.
@@ -18,6 +19,7 @@ public:
         : start(nullptr), size(0) {}
 
     constexpr char operator[](size_t index) const {
+        ASSERT(index < size);
         return start[index];
     }
 
@@ -26,6 +28,7 @@ public:
     }
 
     constexpr StringView substring(size_t start, size_t size) const {
+        ASSERT(start + size <= this->size);
         return StringView(this->start + start, size);
     }
 

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <util/assert.hpp>
 #include <util/memory.hpp>
 
 /**
@@ -29,10 +30,12 @@ public:
     }
 
     const T& operator[](size_t index) const {
+        ASSERT(index < count);
         return reinterpret_cast<const T*>(data)[index];
     }
 
     T& operator[](size_t index) {
+        ASSERT(index < count);
         return reinterpret_cast<T*>(data)[index];
     }
 
