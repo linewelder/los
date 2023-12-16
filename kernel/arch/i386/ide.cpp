@@ -412,12 +412,8 @@ namespace ide {
 
     static InplaceVector<ide::Device, 4> disks;
 
-    const ide::Device& get_disk(size_t id) {
-        return disks[id];
-    }
-
-    size_t get_disk_count() {
-        return disks.get_count();
+    Span<const ide::Device> get_disks() {
+        return disks;
     }
 
     void init(const pci::Function& func) {

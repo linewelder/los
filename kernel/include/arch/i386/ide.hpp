@@ -5,6 +5,7 @@
 
 #include <arch/i386/pci.hpp>
 #include <disk/disk.hpp>
+#include <util/span.hpp>
 
 namespace ide {
     enum class ChannelType {
@@ -88,6 +89,5 @@ namespace ide {
 
     void init(const pci::Function& func);
 
-    const ide::Device& get_disk(size_t id);
-    size_t get_disk_count();
+    Span<const ide::Device> get_disks();
 }

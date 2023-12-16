@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <arch/i386/idt.hpp>
 #include <util/option.hpp>
+#include <util/span.hpp>
 
 namespace ps2 {
     class Device {
@@ -28,10 +29,7 @@ namespace ps2 {
 
     void init();
 
-    const Device& get_device(size_t id);
-
-    /// 1 or 2.
-    size_t get_device_count();
+    Span<const Device> get_devices();
 
     Option<const Device&> find_device_with_type(uint16_t type);
 

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <util/option.hpp>
+#include <util/span.hpp>
 
 namespace pci {
     class Function {
@@ -40,9 +41,7 @@ namespace pci {
         uint8_t function;
     };
 
-    const Function& get_function(size_t index);
-
-    size_t get_function_count();
+    Span<const Function> get_functions();
 
     Option<const Function&> find_function_with_class(uint16_t full_class);
 

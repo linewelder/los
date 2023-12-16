@@ -141,12 +141,8 @@ namespace ps2 {
         }
     }
 
-    const Device& get_device(size_t id) {
-        return devices[id];
-    }
-
-    size_t get_device_count() {
-        return devices.get_count();
+    Span<const Device> get_devices() {
+        return devices;
     }
 
     Option<const Device&> find_device_with_type(uint16_t type) {

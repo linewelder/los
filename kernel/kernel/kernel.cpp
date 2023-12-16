@@ -39,8 +39,7 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     ps2::init();
 
     println("Connected PS/2 devices:");
-    for (size_t i = 0; i < ps2::get_device_count(); i++) {
-        const ps2::Device& device = ps2::get_device(i);
+    for (const auto& device : ps2::get_devices()) {
         println("  - {} (type: {:x})",
             device.get_type_name(), device.get_type());
     }
@@ -49,8 +48,7 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     pci::init();
 
     terminal::write_cstr("Connected PCI devices:\n");
-    for (size_t i = 0; i < pci::get_function_count(); i++) {
-        const pci::Function& func = pci::get_function(i);
+    for (const auto& func : pci::get_functions()) {
         println(
             "  {}:{}.{} Class: {:x} Vendor: {:x} Device: {:x}",
             func.get_bus(), func.get_device(), func.get_function(),
@@ -67,7 +65,7 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     }
 
     println("Connected disks:");
-    for (size_t i = 0; i < ide::get_disk_count(); i++) {
+    for (const auto& disk : ide::get_disks()) {
         auto get_interface_name = [](ide::InterfaceType interface) {
             switch (interface) {
                 case ide::InterfaceType::ATA: return "ATA";
@@ -76,7 +74,6 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
             }
         };
 
-        const ide::Device& disk = ide::get_disk(i);
         println("  - {} ({} Kb) Inteface: {}",
             disk.model, disk.size / 2,
             get_interface_name(disk.interface));

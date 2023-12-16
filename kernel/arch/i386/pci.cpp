@@ -67,12 +67,8 @@ namespace pci {
 
     static InplaceVector<Function, 256> functions;
 
-    const Function& get_function(size_t index) {
-        return functions[index];
-    }
-
-    size_t get_function_count() {
-        return functions.get_count();
+    Span<const Function> get_functions() {
+        return functions;
     }
 
     Option<const Function&> find_function_with_class(uint16_t full_class) {
