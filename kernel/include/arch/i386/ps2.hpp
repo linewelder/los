@@ -35,7 +35,7 @@ namespace ps2 {
 
     Option<const Device&> find_device_with_type(uint16_t type);
 
-    bool try_poll(uint8_t& output, int max_cycles = 500);
+    Option<uint8_t> try_poll(int max_cycles = 500);
 
     uint8_t read_input();
 

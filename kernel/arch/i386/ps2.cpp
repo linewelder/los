@@ -29,14 +29,15 @@ namespace ps2 {
         io_wait();
         outb(CONTROL_PORT, port == 0 ? 0xab : 0xa9); // Perform test.
 
-        uint8_t response = 0;
-        if (!try_poll(response)) {
+        auto response = try_poll();
+        if (!response.has_value()) {
             LOG_ERROR("PS/2 port {} test failed, no response.",
                 port);
             return false;
-        } else if (response != 0x00) {
+        } else if (response.get_value() != 0x00) {
             LOG_ERROR("PS/2 port {} test failed, {} (code 0x{:x}).",
-                port, get_port_test_fail_reason(response), response);
+                port, get_port_test_fail_reason(response.get_value()),
+                response.get_value());
             return false;
         }
 
@@ -49,29 +50,30 @@ namespace ps2 {
         io_wait();
         Device(port).send(0xff); // Reset.
 
-        uint8_t response = 0;
-        if (!try_poll(response)) {
+        auto response = try_poll();
+        if (!response.has_value()) {
             LOG_WARN("PS/2 device {} reset failed, no response.",
                 port);
             return;
-        } else if (response != 0xfa) {
+        } else if (response.get_value() != 0xfa) {
             LOG_ERROR("PS/2 device {} reset failed, received 0x{:x} instead of 0xfa.",
-                port, response);
+                port, response.get_value());
             return;
         }
 
-        if (!try_poll(response)) {
+        response = try_poll();
+        if (!response.has_value()) {
             LOG_ERROR("PS/2 device {} reset failed, no status code.",
                 port);
             return;
-        } else if (response != 0xaa) {
+        } else if (response.get_value() != 0xaa) {
             LOG_ERROR("PS/2 device {} reset failed, status code 0x{:x} instead of 0xaa.",
-                port, response);
+                port, response.get_value());
             return;
         }
 
         // A mouse sends its device type after test.
-        try_poll(response);
+        (void)try_poll();
 
         devices.push_back(Device(port));
         Device& device = devices[devices.get_count() - 1];
@@ -96,13 +98,13 @@ namespace ps2 {
         write_config_byte(config_byte);
 
         outb(CONTROL_PORT, 0xaa); // Perform self test.
-        uint8_t response = 0;
-        if (!try_poll(response)) {
+        auto response = try_poll();
+        if (!response.has_value()) {
             LOG_ERROR("PS/2 controller self test failed, no response");
             return;
-        } else if (response != 0x55) {
+        } else if (response.get_value() != 0x55) {
             LOG_ERROR("PS/2 controller self test failed, received 0x{:x} instead of 0x55",
-                response);
+                response.get_value());
             return;
         }
 
@@ -167,16 +169,16 @@ namespace ps2 {
     }
 
     static bool expect_ack(const char* what, int device_id) {
-        uint8_t response = 0;
-        if (!try_poll(response)) {
+        auto response = try_poll();
+        if (!response.has_value()) {
             LOG_ERROR("{} (PS/2 device {}) failed, didn't receive device response",
                 what, device_id);
             return false;
         }
 
-        if (response != 0xfa) {
+        if (response.get_value() != 0xfa) {
             LOG_ERROR("{} (PS/2 device {}) failed, received 0x{:x} instead of 0xfa",
-                what, device_id, response);
+                what, device_id, response.get_value());
             return false;
         }
 
@@ -199,9 +201,9 @@ namespace ps2 {
 
         uint16_t response = 0;
         for (int i = 0; i < 2; i++) {
-            uint8_t buf;
-            if (try_poll(buf)) {
-                response = response << 8 | buf;
+            auto buf = try_poll();
+            if (buf.has_value()) {
+                response = response << 8 | buf.get_value();
             } else if (i == 0) {
                 response = 0xffff;
             } else {
@@ -242,16 +244,17 @@ namespace ps2 {
             pic::get_interrupt_vector(id == 0 ? 1 : 12), handler);
     }
 
-    bool try_poll(uint8_t& output, int max_cycles) {
+    Option<uint8_t> try_poll(int max_cycles) {
         int cycles = 0;
         while (!get_bit(inb(CONTROL_PORT), 0) && cycles < max_cycles) {
             tiny_delay();
             cycles++;
-            if (cycles == max_cycles) return false;
+            if (cycles == max_cycles) {
+                return {};
+            }
         }
 
-        output = inb(DATA_PORT);
-        return true;
+        return inb(DATA_PORT);
     }
 
     uint8_t read_input() {
