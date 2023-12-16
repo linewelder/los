@@ -273,19 +273,24 @@ namespace ide {
             return { IdentifyResultStatus::RequestError, error_byte };
         };
 
-        uint16_t identification[256];
+        Array<uint16_t, 256> identification;
         for (int i = 0; i < 256; i++) {
             identification[i] = channel.read_data();
         }
 
+        auto get_identification_uint32 = [&](size_t offset) {
+            return (identification[offset + 1] << 16) |
+                identification[offset];
+        };
+
         signature = identification[IDENT_DEVICE_TYPE];
         features = identification[IDENT_FEATURES];
-        command_sets = *reinterpret_cast<uint32_t*>(identification + IDENT_COMMAND_SETS);
+        command_sets = get_identification_uint32(IDENT_COMMAND_SETS);
 
         if (command_sets & COMMAND_SETS_USES_48_BIT) {
-            size = *reinterpret_cast<uint32_t*>(identification + IDENT_MAX_LBA_EXT);
+            size = get_identification_uint32(IDENT_MAX_LBA_EXT);
         } else { // CHS or 28-bit addressing.
-            size = *reinterpret_cast<uint32_t*>(identification + IDENT_MAX_LBA);
+            size = get_identification_uint32(IDENT_MAX_LBA);
         }
 
         // I have no idea why we have to swap the characters.
