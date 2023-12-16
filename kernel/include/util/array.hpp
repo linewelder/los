@@ -33,6 +33,14 @@ public:
         return { data, SIZE };
     }
 
+    constexpr T* begin() { return data; }
+
+    constexpr T* end() { return data + SIZE; }
+
+    constexpr const T* begin() const { return data; }
+
+    constexpr const T* end() const { return data + SIZE; }
+
     T data[SIZE];
 };
 

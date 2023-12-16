@@ -56,6 +56,14 @@ public:
         return { reinterpret_cast<T*>(data), count };
     }
 
+    constexpr T* begin() { return reinterpret_cast<T*>(data); }
+
+    constexpr T* end() { return reinterpret_cast<T*>(data) + count; }
+
+    constexpr const T* begin() const { return reinterpret_cast<const T*>(data); }
+
+    constexpr const T* end() const { return reinterpret_cast<const T*>(data) + count; }
+
 private:
     alignas(T) uint8_t data[sizeof(T) * CAPACITY]; // Raw byte array to avoid needing to initialize the elements.
     size_t count;

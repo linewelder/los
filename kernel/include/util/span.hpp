@@ -21,6 +21,10 @@ public:
         return size;
     }
 
+    constexpr T* begin() const { return start; }
+
+    constexpr T* end() const { return start + size; }
+
     T* start;
     size_t size;
 };
