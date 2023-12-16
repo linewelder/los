@@ -55,8 +55,15 @@ namespace ide {
 
         IdentifyResult identify();
 
-        bool read(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const override;
-        bool write(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const override;
+        /**
+         * See IDisk::read.
+         */
+        bool read(uint64_t lba, Span<uint8_t> buffer) const override;
+
+        /**
+         * See IDisk::write.
+         */
+        bool write(uint64_t lba, Span<uint8_t> buffer) const override;
 
         ChannelType channel_type;
         DriveType drive_type;
@@ -70,11 +77,12 @@ namespace ide {
     private:
         /**
          * Access the drive (read or write).
+         * Sector count is the whole number of sectors that
+         * can fit in `buffer`.
          */
         PollingResult access(
             Direction direction,
             uint64_t lba,
-            uint8_t sector_count,
             Span<uint8_t> buffer) const;
     };
 

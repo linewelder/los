@@ -4,6 +4,7 @@
 #include <kernel/log.hpp>
 #include <util/bits.hpp>
 #include <util/inplace_vector.hpp>
+#include <util/math.hpp>
 
 namespace ide {
     // Flags in the Status register.
@@ -301,15 +302,14 @@ namespace ide {
         return { IdentifyResultStatus::Success, 0 };
     }
 
-    /**
-     * Access the drive (read or write).
-     */
     PollingResult Device::access(
         Direction direction,
         uint64_t lba,
-        uint8_t sector_count,
         Span<uint8_t> buffer) const
     {
+        uint8_t sector_count{ static_cast<uint8_t>(
+            min(buffer.get_size() / 512, 255)) };
+
         enum class AddressMode {
             CHS,
             LBA28,
@@ -393,12 +393,12 @@ namespace ide {
         }
     }
 
-    bool Device::read(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const {
-        return access(Direction::READ, lba, sector_count, buffer) == PollingResult::SUCCESS;
+    bool Device::read(uint64_t lba, Span<uint8_t> buffer) const {
+        return access(Direction::READ, lba, buffer) == PollingResult::SUCCESS;
     }
 
-    bool Device::write(uint64_t lba, uint8_t sector_count, Span<uint8_t> buffer) const {
-        access(Direction::WRITE, lba, sector_count, buffer);
+    bool Device::write(uint64_t lba, Span<uint8_t> buffer) const {
+        access(Direction::WRITE, lba, buffer);
         return true;
     }
 
