@@ -46,6 +46,16 @@ template <typename T>
 using RemoveReference = typename detail::ReferenceRemover<T>::type;
 
 /**
+ * true for lvalue references, false for any other type.
+ */
+
+template <typename T>
+inline constexpr bool IsLvalueRef = false;
+
+template <typename T>
+inline constexpr bool IsLvalueRef<T&> = true;
+
+/**
  * This function is not consteval, so calling it in compile time
  * throws an error.
  */
@@ -68,3 +78,11 @@ constexpr RemoveReference<T>&&
 move(T&& value) noexcept {
     return static_cast<RemoveReference<T>&&>(value);
 }
+
+/**
+ * Can be used to create uninitialized objects if put in
+ * a union with the said object.
+ */
+namespace detail {
+    struct EmptySpace {};
+};

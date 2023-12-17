@@ -13,7 +13,8 @@ You have to check manually using has_value().
 template <typename T>
 class [[nodiscard]] Option {
 public:
-    constexpr Option() : exists(false) {}
+    constexpr Option()
+        : empty(), exists(false) {}
 
     constexpr Option(const T& value)
         : value(value), exists(true) {}
@@ -33,6 +34,14 @@ public:
         return *this;
     }
 
+    constexpr ~Option() requires(!__has_trivial_destructor(T)) {
+        if (exists) {
+            value.~T();
+        }
+    }
+
+    constexpr ~Option() requires(__has_trivial_destructor(T)) = default;
+
     constexpr bool has_value() const {
         return exists;
     }
@@ -50,7 +59,10 @@ public:
     }
 
 private:
-    T value;
+    union {
+        T value;
+        detail::EmptySpace empty;
+    };
     bool exists;
 };
 
