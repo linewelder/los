@@ -65,6 +65,11 @@ public:
         this->ptr = &value;
     }
 
+    constexpr Option& operator=(T& value) {
+        this->ptr = &value;
+        return *this;
+    }
+
     constexpr bool has_value() const {
         return ptr != nullptr;
     }
@@ -90,6 +95,11 @@ public:
 
     constexpr Option(T* value) {
         this->ptr = value;
+    }
+
+    constexpr Option& operator=(T* value) {
+        this->ptr = value;
+        return *this;
     }
 
     constexpr bool has_value() const {
