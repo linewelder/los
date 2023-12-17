@@ -461,7 +461,8 @@ namespace ide {
 
                 switch (result.status) {
                 case IdentifyResultStatus::Success:
-                    disks.push_back(disk);
+                    // IDE controller can only have up to 4 disks connected.
+                    (void)disks.push_back(disk);
                     break;
                 case IdentifyResultStatus::NoDevice:
                     break;

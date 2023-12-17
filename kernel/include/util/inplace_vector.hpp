@@ -74,7 +74,7 @@ public:
      * Append `value` to the end of the array using the copy constructor
      * and return true. If no more space left, return false.
      */
-    bool push_back(const T& value) {
+    [[nodiscard]] bool push_back(const T& value) {
         if (count == CAPACITY) {
             return false;
         }

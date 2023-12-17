@@ -75,7 +75,8 @@ namespace ps2 {
         // A mouse sends its device type after test.
         (void)try_poll();
 
-        devices.push_back(Device(port));
+        // PS2 controller can only have up to 2 devices connected.
+        (void)devices.push_back(Device(port));
         Device& device = devices[devices.get_count() - 1];
 
         device.disable_scanning();
