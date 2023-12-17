@@ -54,31 +54,8 @@ private:
     bool exists;
 };
 
-namespace detail {
-    template <typename RefT, typename PtrT>
-    class OptionRefBase {
-    public:
-        constexpr bool has_value() const {
-            return ptr != nullptr;
-        }
-
-        constexpr RefT get_value() const {
-            return *ptr;
-        }
-
-        constexpr PtrT operator->() const {
-            return ptr;
-        }
-
-    protected:
-        PtrT ptr;
-    };
-}
-
 template <typename T>
-class [[nodiscard]] Option<T&>
-    : public detail::OptionRefBase<T&, T*>
-{
+class [[nodiscard]] Option<T&> {
 public:
     constexpr Option() {
         this->ptr = nullptr;
@@ -87,47 +64,25 @@ public:
     constexpr Option(T& value) {
         this->ptr = &value;
     }
+
+    constexpr bool has_value() const {
+        return ptr != nullptr;
+    }
+
+    constexpr T& get_value() const {
+        return *ptr;
+    }
+
+    constexpr T* operator->() const {
+        return ptr;
+    }
+
+private:
+    T* ptr;
 };
 
 template <typename T>
-class [[nodiscard]] Option<const T&>
-    : public detail::OptionRefBase<const T&, const T*>
-{
-public:
-    constexpr Option() {
-        this->ptr = nullptr;
-    }
-
-    constexpr Option(const T& value) {
-        this->ptr = &value;
-    }
-};
-
-namespace detail {
-    template <typename PtrT>
-    class OptionPtrBase {
-    public:
-        constexpr bool has_value() const {
-            return ptr != nullptr;
-        }
-
-        constexpr PtrT get_value() const {
-            return ptr;
-        }
-
-        constexpr PtrT operator->() const {
-            return ptr;
-        }
-
-    protected:
-        PtrT ptr;
-    };
-}
-
-template <typename T>
-class [[nodiscard]] Option<T*>
-    : public detail::OptionPtrBase<T*>
-{
+class [[nodiscard]] Option<T*> {
 public:
     constexpr Option() {
         this->ptr = nullptr;
@@ -136,19 +91,19 @@ public:
     constexpr Option(T* value) {
         this->ptr = value;
     }
-};
 
-
-template <typename T>
-class [[nodiscard]] Option<const T*>
-    : public detail::OptionPtrBase<const T*>
-{
-public:
-    constexpr Option() {
-        this->ptr = nullptr;
+    constexpr bool has_value() const {
+        return ptr != nullptr;
     }
 
-    constexpr Option(const T* value) {
-        this->ptr = value;
+    constexpr T* get_value() const {
+        return ptr;
     }
+
+    constexpr T* operator->() const {
+        return ptr;
+    }
+
+private:
+    T* ptr;
 };
