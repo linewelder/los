@@ -6,6 +6,7 @@
 #include <util/assert.hpp>
 #include <util/memory.hpp>
 #include <util/span.hpp>
+#include <util/util.hpp>
 
 /**
  * Dynamic array without dynamic memory allocation.
@@ -13,7 +14,8 @@
 template <typename T, size_t CAPACITY>
 class InplaceVector {
 public:
-    constexpr InplaceVector() : count(0) {}
+    constexpr InplaceVector()
+        : empty(), count(0) {}
 
     /**
      * Append `value` to the end of the array using the copy constructor
@@ -24,20 +26,19 @@ public:
             return false;
         }
 
-        T* slot = &reinterpret_cast<T*>(data)[count];
-        new (slot) T(value);
+        new (&items[count]) T(value);
         count++;
         return true;
     }
 
     const T& operator[](size_t index) const {
         ASSERT(index < count);
-        return reinterpret_cast<const T*>(data)[index];
+        return items[index];
     }
 
     T& operator[](size_t index) {
         ASSERT(index < count);
-        return reinterpret_cast<T*>(data)[index];
+        return items[index];
     }
 
     size_t get_count() const {
@@ -49,22 +50,25 @@ public:
     }
 
     constexpr operator Span<const T>() const {
-        return { reinterpret_cast<const T*>(data), count };
+        return { &items[0], count };
     }
 
     constexpr operator Span<T>() const {
-        return { reinterpret_cast<T*>(data), count };
+        return { &items[0], count };
     }
 
-    constexpr T* begin() { return reinterpret_cast<T*>(data); }
+    constexpr T* begin() { return &items[0]; }
 
-    constexpr T* end() { return reinterpret_cast<T*>(data) + count; }
+    constexpr T* end() { return &items[count]; }
 
-    constexpr const T* begin() const { return reinterpret_cast<const T*>(data); }
+    constexpr const T* begin() const { return &items[0]; }
 
-    constexpr const T* end() const { return reinterpret_cast<const T*>(data) + count; }
+    constexpr const T* end() const { return &items[count]; }
 
 private:
-    alignas(T) uint8_t data[sizeof(T) * CAPACITY]; // Raw byte array to avoid needing to initialize the elements.
+    union {
+        T items[CAPACITY];
+        detail::EmptySpace empty;
+    };
     size_t count;
 };
