@@ -17,6 +17,14 @@ public:
     constexpr InplaceVector()
         : empty(), count(0) {}
 
+    constexpr ~InplaceVector() requires(!__has_trivial_destructor(T)) {
+        for (size_t i = 0; i < count; i++) {
+            items[i].~T();
+        }
+    }
+
+    constexpr ~InplaceVector() requires(__has_trivial_destructor(T)) = default;
+
     /**
      * Append `value` to the end of the array using the copy constructor
      * and return true. If no more space left, return false.
