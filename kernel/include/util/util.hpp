@@ -56,6 +56,25 @@ template <typename T>
 inline constexpr bool IsLvalueRef<T&> = true;
 
 /**
+ * Type traits for container types.
+ */
+
+template<typename T>
+inline constexpr bool IsTriviallyCopyConstructible = __is_trivially_constructible(T, const T&);
+
+template<typename T>
+inline constexpr bool IsTriviallyCopyAssignable = __is_trivially_assignable(T&, const T&);
+
+template<typename T>
+inline constexpr bool IsTriviallyMoveConstructible = __is_trivially_constructible(T, T&&);
+
+template<typename T>
+inline constexpr bool IsTriviallyMoveAssignable = __is_trivially_assignable(T&, T&&);
+
+template <typename T>
+inline constexpr bool IsTriviallyDestructible = __has_trivial_destructor(T);
+
+/**
  * This function is not consteval, so calling it in compile time
  * throws an error.
  */

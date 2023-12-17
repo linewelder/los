@@ -34,13 +34,57 @@ public:
         return *this;
     }
 
-    constexpr ~Option() requires(!__has_trivial_destructor(T)) {
+    /* Default implementations for trivial objects. */
+
+    constexpr Option(const Option& other) = default;
+    constexpr Option& operator=(const Option& other) = default;
+    constexpr ~Option() = default;
+
+    /* Conditionally override defaults for not trivial objects. */
+
+    constexpr Option(const Option& other) requires(!IsTriviallyCopyConstructible<T>)
+        : exists(other.exists)
+    {
+        if (other.exists) {
+            new (&value) T(other.value);
+        }
+    }
+
+    constexpr Option& operator=(const Option& other)
+        requires(!IsTriviallyCopyAssignable<T>)
+    {
+        exists = other.exists;
+        if (other.exists) {
+            value = other.value;
+        }
+        return *this;
+    }
+
+    constexpr ~Option() requires(!IsTriviallyDestructible<T>) {
         if (exists) {
             value.~T();
         }
     }
 
-    constexpr ~Option() requires(__has_trivial_destructor(T)) = default;
+    /* Move constructors. */
+
+    constexpr Option(Option&& other)
+        : exists(other.exists)
+    {
+        if (other.exists) {
+            new (&value) T(move(other.value));
+            other.exists = false;
+        }
+    }
+
+    constexpr Option& operator=(Option&& other) {
+        exists = other.exists;
+        if (other.exists) {
+            value = move(other.value);
+            other.exists = false;
+        }
+        return *this;
+    }
 
     constexpr bool has_value() const {
         return exists;
