@@ -84,6 +84,20 @@ public:
         return true;
     }
 
+    /**
+     * Append `value` to the end of the array using the move constructor
+     * and return true. If no more space left, return false.
+     */
+    [[nodiscard]] bool push_back(T&& value) {
+        if (count == CAPACITY) {
+            return false;
+        }
+
+        new (&items[count]) T(move(value));
+        count++;
+        return true;
+    }
+
     const T& operator[](size_t index) const {
         ASSERT(index < count);
         return items[index];
