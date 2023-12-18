@@ -315,6 +315,11 @@ namespace ide {
         uint64_t lba,
         Span<uint8_t> buffer) const
     {
+        if (interface == InterfaceType::ATAPI) {
+            LOG_WARN("Attempt to access an ATAPI drive (not supported).");
+            return PollingResult::ERROR;
+        }
+
         uint8_t sector_count{ static_cast<uint8_t>(
             min(buffer.get_size() / 512, 255)) };
 
