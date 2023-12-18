@@ -183,6 +183,8 @@ namespace ide {
         }
 
         PollingResult read_sectors(uint8_t sector_count, Span<uint8_t> buffer) const {
+            size_t bytes_read = 0;
+
             for (uint8_t i = 0; i < sector_count; i++) {
                 PollingResult result = poll(true);
                 if (result != PollingResult::SUCCESS) {
@@ -191,8 +193,9 @@ namespace ide {
 
                 for (int j = 0; j < 256; j++) {
                     uint16_t word = read_data();
-                    buffer[2 * j] = get_bit_range(word, 0, 8);
-                    buffer[2 * j + 1] = get_bit_range(word, 8, 8);
+                    buffer[bytes_read] = get_bit_range(word, 0, 8);
+                    buffer[bytes_read + 1] = get_bit_range(word, 8, 8);
+                    bytes_read += 2;
                 }
             }
 
@@ -200,11 +203,14 @@ namespace ide {
         }
 
         PollingResult write_sectors(uint8_t sector_count, Span<uint8_t> buffer) const {
+            size_t bytes_written = 0;
+
             for (uint8_t i = 0; i < sector_count; i++) {
                 poll(false);
                 for (int j = 0; j < 256; j++) {
-                    write_data(buffer[2 * j] |
-                        (buffer[2 * j + 1] << 8));
+                    write_data(buffer[bytes_written] |
+                        (buffer[bytes_written + 1] << 8));
+                    bytes_written += 2;
                 }
             }
 
