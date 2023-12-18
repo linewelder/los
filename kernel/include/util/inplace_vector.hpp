@@ -17,13 +17,58 @@ public:
     constexpr InplaceVector()
         : empty(), count(0) {}
 
-    constexpr ~InplaceVector() requires(!__has_trivial_destructor(T)) {
+    /* Default implementations for trivial objects. */
+
+    InplaceVector(const InplaceVector& other) = default;
+    InplaceVector& operator=(const InplaceVector& other) = default;
+    constexpr ~InplaceVector() = default;
+
+    /* Conditionally override defaults for not trivial objects. */
+
+    InplaceVector(const InplaceVector& other)
+        requires(!IsTriviallyCopyConstructible<T>)
+        : count(other.count)
+    {
+        for (size_t i = 0; i < count; i++) {
+            new (&items[i]) T(other.items[i]);
+        }
+    }
+
+    constexpr InplaceVector& operator=(const InplaceVector& other)
+        requires(!IsTriviallyCopyAssignable<T>)
+    {
+        count = other.count;
+        for (size_t i = 0; i < count; i++) {
+            items[i] = other.items[i];
+        }
+        return *this;
+    }
+
+    constexpr ~InplaceVector() requires(!IsTriviallyDestructible<T>) {
         for (size_t i = 0; i < count; i++) {
             items[i].~T();
         }
     }
 
-    constexpr ~InplaceVector() requires(__has_trivial_destructor(T)) = default;
+    /* Move constructors. */
+
+    InplaceVector(InplaceVector&& other)
+        : count(other.count)
+    {
+        for (size_t i = 0; i < count; i++) {
+            new (&items[i]) T(move(other.items[i]));
+        }
+        other.count = 0;
+    }
+
+    constexpr InplaceVector& operator=(InplaceVector&& other) {
+        count = other.count;
+        for (size_t i = 0; i < count; i++) {
+            items[i] = move(other.items[i]);
+        }
+        other.count = 0;
+        return *this;
+    }
 
     /**
      * Append `value` to the end of the array using the copy constructor
