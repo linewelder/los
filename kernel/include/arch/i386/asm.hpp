@@ -71,3 +71,25 @@ inline void tiny_delay() {
         "nop\n\t"
         "nop\n\t");
 }
+
+/**
+ * CR3 is the register containing the active page
+ * directory's physical address.
+ */
+inline void write_cr3(uint32_t value) {
+    asm volatile(
+        "movl %0, %%cr3"
+        : : "r"(value));
+}
+
+/**
+ * CR3 is the register containing the active page
+ * directory's physical address.
+ */
+inline uint32_t read_cr3() {
+    uint32_t result;
+    asm volatile(
+        "movl %%cr3, %0"
+        : "=r"(result));
+    return result;
+}

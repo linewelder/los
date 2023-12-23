@@ -29,6 +29,8 @@ void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
     register_exception_handlers();
 
     frame_allocator::init(multiboot_info);
+    paging::init();
+
     println("Los ({}MiB RAM Available)",
         frame_allocator::get_total_memory() / 1024 / 1024);
 

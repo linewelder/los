@@ -8,4 +8,6 @@ namespace paging {
     using PhysAddr = size_t;
 
     using VirtAddr = size_t;
+
+    void init();
 }
