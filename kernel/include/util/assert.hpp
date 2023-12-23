@@ -1,5 +1,6 @@
 #pragma once
 
+[[noreturn]]
 void assertion_failed(const char* file, int line, const char* condition);
 
 #define ASSERT(condition) \
