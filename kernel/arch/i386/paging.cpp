@@ -151,14 +151,12 @@ namespace paging {
         auto dir_index = get_bit_range(address, 22, 10);
         auto page_table = page_directory[dir_index].get_table();
         if (!page_table.has_value()) {
-            LOG_INFO("Table {} not maped", dir_index);
             return {};
         }
 
         auto table_index = get_bit_range(address, 12, 10);
         auto frame_start = page_table.get_value()[table_index].get_addr();
         if (!frame_start.has_value()) {
-            LOG_INFO("Page {} not maped", table_index);
             return {};
         }
 
