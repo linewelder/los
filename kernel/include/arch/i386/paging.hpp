@@ -12,5 +12,9 @@ namespace paging {
 
     void init();
 
+    struct PageFlags {
+        bool writable;
+    };
+
     Option<PhysAddr> translate(VirtAddr address);
 }

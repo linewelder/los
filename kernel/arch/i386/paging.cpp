@@ -33,18 +33,18 @@ namespace paging {
 
         ~PageTableEntry() = default;
 
-        void map(PhysAddr addr, bool writeEnabled) {
+        void map(PhysAddr addr, PageFlags flags) {
             uint32_t desc = addr & 0xffff'f000;
             desc = set_bit(desc, 0); // Present.
-            if (writeEnabled) {
+            if (flags.writable) {
                 desc = set_bit(desc, 1);
             }
 
             inner = desc;
         }
 
-        void map(const PageTable& table, bool writeEnabled) {
-            map(reinterpret_cast<PhysAddr>(&table), writeEnabled);
+        void map(const PageTable& table, PageFlags flags) {
+            map(reinterpret_cast<PhysAddr>(&table), flags);
         }
 
         void unmap() {
@@ -133,9 +133,9 @@ namespace paging {
 
         // Identity map the first 4MiB.
         for (int i = 0; i < 1024; i++) {
-            kernel_page_table[i].map(i * 0x1000, true);
+            kernel_page_table[i].map(i * 0x1000, PageFlags{ .writable = true });
         }
-        page_directory[0].map(kernel_page_table, true);
+        page_directory[0].map(kernel_page_table, PageFlags{ .writable = true });
 
         page_directory.use();
         enable_paging();
