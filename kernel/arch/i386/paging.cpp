@@ -191,4 +191,22 @@ namespace paging {
         entry.map(frame, flags);
         return true;
     }
+
+    void unmap(VirtAddr page) {
+        auto& page_directory = PageTable::get_active_page_dir();
+
+        auto dir_index = get_bit_range(page, 22, 10);
+        auto page_table = page_directory[dir_index].get_table();
+        if (!page_table.has_value()) {
+            return;
+        }
+
+        auto table_index = get_bit_range(page, 12, 10);
+        auto& entry = page_table.get_value()[table_index];
+        entry.unmap();
+    }
+
+    bool is_mapped(VirtAddr address) {
+        return translate(address).has_value();
+    }
 }

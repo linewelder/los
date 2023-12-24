@@ -22,5 +22,15 @@ namespace paging {
      */
     bool map(VirtAddr page, PhysAddr frame, PageFlags flags);
 
+    /**
+     * Unmap the page containing `page`.
+     */
+    void unmap(VirtAddr page);
+
+    /**
+     * Return true if the page containing the address is mapped.
+     */
+    bool is_mapped(VirtAddr address);
+
     Option<PhysAddr> translate(VirtAddr address);
 }
