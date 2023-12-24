@@ -1,6 +1,8 @@
 /**
  * @file
  *
+ * We assume that all page tables and directories are identity mapped.
+ *
  * OSDev Wiki: https://wiki.osdev.org/Paging
  * Written with: https://os.phil-opp.com/paging-implementation/
  */
@@ -49,6 +51,19 @@ namespace paging {
             inner = 0;
         }
 
+        Option<PhysAddr> get_addr() const {
+            if (is_unused()) return {};
+            return inner & 0xffff'f000;
+        }
+
+        /**
+         * Only for page table directory entries.
+         */
+        Option<PageTable&> get_table() const {
+            if (is_unused()) return {};
+            return *reinterpret_cast<PageTable*>(inner & 0xffff'f000);
+        }
+
         bool is_unused() const {
             return !get_bit(inner, 0);
         }
@@ -68,6 +83,10 @@ namespace paging {
             PageTable* pointer = reinterpret_cast<PageTable*>(maybe.get_value());
             new (pointer) PageTable();
             return *pointer;
+        }
+
+        static PageTable& get_active_page_dir() {
+            return *reinterpret_cast<PageTable*>(read_cr3());
         }
 
         PageTable(const PageTable& other) = delete;
@@ -120,5 +139,26 @@ namespace paging {
 
         page_directory.use();
         enable_paging();
+    }
+
+    Option<PhysAddr> translate(VirtAddr address) {
+        auto& page_directory = PageTable::get_active_page_dir();
+
+        auto dir_index = get_bit_range(address, 22, 10);
+        auto page_table = page_directory[dir_index].get_table();
+        if (!page_table.has_value()) {
+            LOG_INFO("Table {} not maped", dir_index);
+            return {};
+        }
+
+        auto table_index = get_bit_range(address, 12, 10);
+        auto frame_start = page_table.get_value()[table_index].get_addr();
+        if (!frame_start.has_value()) {
+            LOG_INFO("Page {} not maped", table_index);
+            return {};
+        }
+
+        auto offset = get_bit_range(address, 0, 12);
+        return frame_start.get_value() + offset;
     }
 }
