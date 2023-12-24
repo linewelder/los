@@ -86,14 +86,6 @@ namespace paging {
             return *pointer;
         }
 
-        static PageTable& allocate() {
-            auto maybe = try_allocate();
-            if (!maybe.has_value()) {
-                kpanic("Failed to allocate memory for a page table.");
-            }
-            return maybe.get_value();
-        }
-
         static PageTable& get_active_page_dir() {
             return *reinterpret_cast<PageTable*>(read_cr3());
         }
@@ -137,16 +129,19 @@ namespace paging {
     }
 
     void init() {
-        PageTable& page_directory = PageTable::allocate();
-        PageTable& kernel_page_table = PageTable::allocate();
+        auto maybe_page_dir = PageTable::try_allocate();
+        if (!maybe_page_dir.has_value()) {
+            kpanic("Failed to allocate the first page table directory.");
+        }
+
+        auto& page_directory = maybe_page_dir.get_value();
+        page_directory.use();
 
         // Identity map the first 4MiB.
         for (int i = 0; i < 1024; i++) {
-            kernel_page_table[i].map(i * 0x1000, PageFlags{ .writable = true });
+            map(i * 0x1000, i * 0x1000, PageFlags{ .writable = true });
         }
-        page_directory[0].map(kernel_page_table, PageFlags{ .writable = true });
 
-        page_directory.use();
         enable_paging();
     }
 
