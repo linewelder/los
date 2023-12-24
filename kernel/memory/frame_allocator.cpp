@@ -33,8 +33,8 @@ namespace frame_allocator {
     static size_t frame_capacity;
     static size_t frame_count;
 
-    void init(multiboot_info_t* info) {
-        bool mmap_valid = get_bit(info->flags, 6);
+    void init(const multiboot_info_t& info) {
+        bool mmap_valid = get_bit(info.flags, 6);
         if (!mmap_valid) {
             kpanic("Invalid memory map");
         }
@@ -44,8 +44,8 @@ namespace frame_allocator {
         MemoryRegion available { kernel_end_addr, MAX_ADDRESS - kernel_end_addr };
 
         Span<const multiboot_memory_map_t> mmap{
-            .start = reinterpret_cast<const multiboot_memory_map_t*>(info->mmap_addr),
-            .size = info->mmap_length / sizeof(multiboot_memory_map_t),
+            .start = reinterpret_cast<const multiboot_memory_map_t*>(info.mmap_addr),
+            .size = info.mmap_length / sizeof(multiboot_memory_map_t),
         };
 
         for (const auto& region : mmap) {

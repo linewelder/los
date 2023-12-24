@@ -6,7 +6,7 @@
 #include <util/option.hpp>
 
 namespace frame_allocator {
-    void init(multiboot_info_t* multiboot_info);
+    void init(const multiboot_info_t& multiboot_info);
 
     Option<paging::PhysAddr> allocate_frame();
 

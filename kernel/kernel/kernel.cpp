@@ -17,7 +17,7 @@
 #include <memory/frame_allocator.hpp>
 
 extern "C" [[noreturn]]
-void kmain(multiboot_info_t* multiboot_info, uint32_t magic) {
+void kmain(const multiboot_info_t& multiboot_info, uint32_t magic) {
     terminal::clear();
 
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
