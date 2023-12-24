@@ -1,13 +1,10 @@
 #pragma once
 
+#include <util/assert.hpp>
 #include <util/util.hpp>
 
 /*
 Option<T> - represents an item that be present or not.
-
-NOTE:
-Access methods do not check whether the value is present.
-You have to check manually using has_value().
 */
 
 template <typename T>
@@ -91,14 +88,17 @@ public:
     }
 
     constexpr T get_value() const {
+        ASSERT(has_value());
         return value;
     }
 
     constexpr T* operator->() {
+        ASSERT(has_value());
         return &value;
     }
 
     constexpr const T* operator->() const {
+        ASSERT(has_value());
         return &value;
     }
 
@@ -131,10 +131,12 @@ public:
     }
 
     constexpr T& get_value() const {
+        ASSERT(has_value());
         return *ptr;
     }
 
     constexpr T* operator->() const {
+        ASSERT(has_value());
         return ptr;
     }
 
@@ -163,10 +165,12 @@ public:
     }
 
     constexpr T* get_value() const {
+        ASSERT(has_value());
         return ptr;
     }
 
     constexpr T* operator->() const {
+        ASSERT(has_value());
         return ptr;
     }
 
