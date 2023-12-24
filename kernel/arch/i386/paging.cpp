@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <arch/i386/asm.hpp>
 #include <kernel/kpanic.hpp>
+#include <kernel/log.hpp>
 #include <memory/frame_allocator.hpp>
 #include <util/assert.hpp>
 #include <util/array.hpp>
@@ -74,15 +75,23 @@ namespace paging {
 
     class PageTable {
     public:
-        static PageTable& allocate() {
+        static Option<PageTable&> try_allocate() {
             auto maybe = frame_allocator::allocate_frame();
             if (!maybe.has_value()) {
-                kpanic("Failed to allocate memory for a page table.");
+                return {};
             }
 
             PageTable* pointer = reinterpret_cast<PageTable*>(maybe.get_value());
             new (pointer) PageTable();
             return *pointer;
+        }
+
+        static PageTable& allocate() {
+            auto maybe = try_allocate();
+            if (!maybe.has_value()) {
+                kpanic("Failed to allocate memory for a page table.");
+            }
+            return maybe.get_value();
         }
 
         static PageTable& get_active_page_dir() {
@@ -160,5 +169,33 @@ namespace paging {
 
         auto offset = get_bit_range(address, 0, 12);
         return frame_start.get_value() + offset;
+    }
+
+    bool map(VirtAddr page, PhysAddr frame, PageFlags flags) {
+        auto& page_directory = PageTable::get_active_page_dir();
+
+        auto dir_index = get_bit_range(page, 22, 10);
+        auto page_table = page_directory[dir_index].get_table();
+        if (!page_table.has_value()) {
+            LOG_INFO(
+                "Mapping page table {}.",
+                dir_index);
+
+            page_table = PageTable::try_allocate();
+            if (!page_table.has_value()) return false;
+
+            page_directory[dir_index]
+                .map(page_table.get_value(), PageFlags{ .writable = true });
+        }
+
+        auto table_index = get_bit_range(page, 12, 10);
+        auto& entry = page_table.get_value()[table_index];
+        if (!entry.is_unused()) {
+            LOG_WARN("Mapping page {:p} that is already mapped to {:p}.",
+                page & 0xffff'f000, entry.get_addr().get_value());
+        }
+
+        entry.map(frame, flags);
+        return true;
     }
 }

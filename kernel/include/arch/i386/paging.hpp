@@ -16,5 +16,11 @@ namespace paging {
         bool writable;
     };
 
+    /**
+     * Map the page containing `page` to the frame containing `frame`.
+     * Return true on success, false on failure.
+     */
+    bool map(VirtAddr page, PhysAddr frame, PageFlags flags);
+
     Option<PhysAddr> translate(VirtAddr address);
 }
