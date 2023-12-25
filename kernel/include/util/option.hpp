@@ -87,7 +87,12 @@ public:
         return exists;
     }
 
-    constexpr T get_value() const {
+    constexpr T& get_value() {
+        ASSERT(has_value());
+        return value;
+    }
+
+    constexpr const T& get_value() const {
         ASSERT(has_value());
         return value;
     }
