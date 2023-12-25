@@ -45,6 +45,9 @@ namespace detail {
 template <typename T>
 using RemoveReference = typename detail::ReferenceRemover<T>::type;
 
+template <typename T>
+requires(__is_enum(T)) using UnderlyingType = __underlying_type(T);
+
 /**
  * true for lvalue references, false for any other type.
  */
