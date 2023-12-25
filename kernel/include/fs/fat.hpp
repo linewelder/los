@@ -4,5 +4,25 @@
 #include <util/option.hpp>
 
 namespace fat {
-    bool try_read(const IDisk& disk);
+    enum class FatType {
+        FAT12,
+        FAT16,
+        FAT32
+    };
+
+    class FatFS {
+    public:
+        static Option<FatFS> try_read(const IDisk& disk);
+
+    private:
+        FatFS(const IDisk& disk);
+
+        uint32_t first_sector_of(uint32_t cluster) const;
+
+        const IDisk& disk;
+        FatType type;
+        uint32_t first_data_sector;
+        uint8_t sectors_per_cluster;
+        uint32_t first_root_sector;
+    };
 }

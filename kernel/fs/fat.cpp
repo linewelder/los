@@ -107,7 +107,7 @@ namespace fat {
     };
     static_assert(sizeof(LongNameEntry) == 32);
 
-    bool try_read(const IDisk& disk) {
+    Option<FatFS> FatFS::try_read(const IDisk& disk) {
         Array<uint8_t, 512> boot_sector;
         if (!disk.read(0, boot_sector)) {
             LOG_ERROR("Failed to read boot sector.");
@@ -120,39 +120,46 @@ namespace fat {
         auto total_sectors = header.total_sectors_16 == 0
             ? header.total_sectors_32
             : header.total_sectors_16;
-        LOG_INFO("Total sectors: {}", total_sectors);
 
         auto fat_size = header.sectors_per_fat == 0
             ? header.fat32.sectors_per_fat
             : header.sectors_per_fat;
-        LOG_INFO("FAT size: {} sectors", fat_size);
 
         auto root_dir_sectors =
             ((header.root_entry_count * 32) + (header.bytes_per_sector - 1))
                 / header.bytes_per_sector;
-        LOG_INFO("Root directory size: {} sectors", root_dir_sectors);
 
         auto first_data_sector = header.reserved_sector_count +
             (header.fat_count * fat_size) + root_dir_sectors;
-        LOG_INFO("First data sector: {}", first_data_sector);
-
-        auto first_fat_sector = header.reserved_sector_count;
-        LOG_INFO("First FAT sector: {}", first_fat_sector);
 
         auto data_sectors = total_sectors - first_data_sector;
-        LOG_INFO("Data sectors: {}", data_sectors);
 
         auto total_clusters = data_sectors / header.sectors_per_cluster;
-        LOG_INFO("Total clusters: {}", total_clusters);
 
+        FatType type;
         if (total_clusters < 4085) {
-            LOG_INFO("Type: FAT12");
+            type = FatType::FAT12;
         } else if (total_clusters < 65525) {
-            LOG_INFO("Type: FAT16");
+            type = FatType::FAT16;
         } else {
-            LOG_INFO("Type: FAT32");
+            type = FatType::FAT32;
         }
 
-        return {};
+        FatFS fs(disk);
+        fs.type = type;
+        fs.first_data_sector = first_data_sector;
+        fs.sectors_per_cluster = header.sectors_per_cluster;
+
+        fs.first_root_sector = type == FatType::FAT32
+            ? fs.first_sector_of(header.fat32.root_cluster)
+            : first_data_sector - root_dir_sectors;
+
+        return fs;
+    }
+
+    FatFS::FatFS(const IDisk& disk) : disk(disk) {}
+
+    uint32_t FatFS::first_sector_of(uint32_t cluster) const {
+        return ((cluster - 2) * sectors_per_cluster) + first_data_sector;
     }
 }
