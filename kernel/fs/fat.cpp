@@ -4,6 +4,7 @@
 #include <disk/disk.hpp>
 #include <kernel/log.hpp>
 #include <util/array.hpp>
+#include <util/enum_flags.hpp>
 
 namespace fat {
     struct [[gnu::packed]] FatHeader16 {
@@ -66,6 +67,7 @@ namespace fat {
         /** The entry is a LongNameEntry*/
         LONG_NAME = 0x0f
     };
+    ENUM_FLAGS(FileAttr)
 
     struct TimeStamp {
         uint16_t value : 5;
@@ -155,6 +157,53 @@ namespace fat {
             : first_data_sector - root_dir_sectors;
 
         return fs;
+    }
+
+    Option<Vector<DirEntry>> FatFS::list_root() const {
+        Vector<DirEntry> list;
+        if (!read_files_from_sector(first_root_sector, list)) {
+            return {};
+        }
+        return list;
+    }
+
+    bool FatFS::read_files_from_sector(
+        uint32_t sector, Vector<DirEntry>& list) const
+    {
+        Array<uint8_t, 512> data;
+        if (!disk.read(sector, data)) return false;
+
+        Span<const FileEntry> entries{
+            reinterpret_cast<const FileEntry*>(data.begin()),
+            16
+        };
+
+        for (const auto& entry : entries) {
+            if (entry.name[0] == '\0') break; // Out of entries.
+            if (entry.name[0] == '\xe5') continue; // Entry not used.
+
+            if (has_flag(entry.attributes, FileAttr::VOLUME_ID)) {
+                continue;
+            }
+
+            // We do not support long file names yet.
+            if (entry.attributes == FileAttr::LONG_NAME) {
+                continue;
+            }
+
+            DirEntry file;
+            file.is_directory = has_flag(entry.attributes, FileAttr::DIRECTORY);
+
+            size_t length = 0;
+            for (auto ch : entry.name) {
+                if (ch == ' ') break;
+                file.name[length++] = ch;
+            }
+            file.name[length] = '\0';
+
+            list.push_back(file);
+        }
+        return true;
     }
 
     FatFS::FatFS(const IDisk& disk) : disk(disk) {}
