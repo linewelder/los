@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <util/assert.hpp>
+#include <util/util.hpp>
 
 template <typename T>
 struct Span {
@@ -24,6 +25,10 @@ public:
     constexpr T* begin() const { return start; }
 
     constexpr T* end() const { return start + size; }
+
+    constexpr operator Span<const T>() const requires(!IsConst<T>) {
+        return { start, size };
+    }
 
     T* start;
     size_t size;

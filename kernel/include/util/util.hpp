@@ -56,6 +56,16 @@ template <typename T>
 inline constexpr bool IsLvalueRef<T&> = true;
 
 /**
+ * true for types qualified as cont.
+ */
+
+template <typename T>
+inline constexpr bool IsConst = false;
+
+template <typename T>
+inline constexpr bool IsConst<T const> = true;
+
+/**
  * Type traits for container types.
  */
 
