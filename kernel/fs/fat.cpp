@@ -168,32 +168,23 @@ namespace fat {
         return list;
     }
 
-    bool FatFS::read_files_from_sector(
-        uint32_t sector, Vector<DirEntry>& list) const
-    {
-        Array<uint8_t, 512> data;
-        if (!disk.read(sector, data)) return false;
-
-        Span<const FileEntry> entries{
-            reinterpret_cast<const FileEntry*>(data.begin()),
-            16
-        };
-
-        struct LongFileNameBuffer {
-            
-        };
-
-        for (const auto& entry : entries) {
-            if (entry.name[0] == '\0') break; // Out of entries.
-            if (entry.name[0] == '\xe5') continue; // Entry not used.
+    /**
+     * Consumes FileEntry and LongNameEntry one by one, returning
+     * a DirEntry when ready.
+     */
+    class DirectoryParser {
+    public:
+        Option<DirEntry> read_entry(const FileEntry& entry) {
+            if (entry.name[0] == '\0') return {}; // Out of entries.
+            if (entry.name[0] == '\xe5') return {}; // Entry not used.
 
             if (has_flag(entry.attributes, FileAttr::VOLUME_ID)) {
-                continue;
+                return {};
             }
 
             // We do not support long file names yet.
             if (entry.attributes == FileAttr::LONG_NAME) {
-                continue;
+                return {};
             }
 
             DirEntry file;
@@ -212,8 +203,29 @@ namespace fat {
                 }
             }
 
-            list.push_back(move(file));
+            return file;
         }
+    };
+
+    bool FatFS::read_files_from_sector(
+        uint32_t sector, Vector<DirEntry>& list) const
+    {
+        Array<uint8_t, 512> data;
+        if (!disk.read(sector, data)) return false;
+
+        Span<const FileEntry> entries{
+            reinterpret_cast<const FileEntry*>(data.begin()),
+            16
+        };
+
+        DirectoryParser parser;
+        for (const auto& entry : entries) {
+            auto maybe = parser.read_entry(entry);
+            if (maybe.has_value()) {
+                list.push_back(move(maybe.get_value()));
+            }
+        }
+
         return true;
     }
 
