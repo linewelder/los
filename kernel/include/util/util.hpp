@@ -84,6 +84,18 @@ inline constexpr bool IsTriviallyMoveAssignable = __is_trivially_assignable(T&, 
 template <typename T>
 inline constexpr bool IsTriviallyDestructible = __has_trivial_destructor(T);
 
+template<typename T>
+inline constexpr bool IsCopyConstructible = __is_constructible(T, const T&);
+
+template<typename T>
+inline constexpr bool IsCopyAssignable = __is_assignable(T&, const T&);
+
+template<typename T>
+inline constexpr bool IsMoveConstructible = __is_constructible(T, T&&);
+
+template<typename T>
+inline constexpr bool IsMoveAssignable = __is_assignable(T&, T&&);
+
 /**
  * This function is not consteval, so calling it in compile time
  * throws an error.
