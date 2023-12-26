@@ -252,7 +252,7 @@ namespace fat {
             return file;
         }
 
-        bool read_files_from_sector(
+        bool read_sector(
             uint32_t sector, Vector<DirEntry>& list)
         {
             Array<uint8_t, 512> data;
@@ -273,12 +273,12 @@ namespace fat {
             return true;
         }
 
-        bool read_files_from_cluster(
+        bool read_cluster(
             uint32_t cluster, Vector<DirEntry>& list)
         {
             auto start = fs.first_sector_of(cluster);
             for (int i = 0; i < fs.sectors_per_cluster; i++) {
-                if (!read_files_from_sector(start + i, list)) {
+                if (!read_sector(start + i, list)) {
                     return false;
                 }
             }
@@ -294,12 +294,12 @@ namespace fat {
         Vector<DirEntry> list;
         DirectoryParser parser(*this);
         if (type == FatType::FAT32) {
-            if (!parser.read_files_from_cluster(root_start, list)) {
+            if (!parser.read_cluster(root_start, list)) {
                 return {};
             }
         } else {
             for (uint32_t i = 0; i < root_sectors; i++) {
-                if (!parser.read_files_from_sector(root_start + i, list)) {
+                if (!parser.read_sector(root_start + i, list)) {
                     return {};
                 }
             }
