@@ -14,6 +14,7 @@
 #include <kernel/print.hpp>
 #include <kernel/kpanic.hpp>
 #include <kernel/multiboot.h>
+#include <fs/fat.hpp>
 #include <memory/frame_allocator.hpp>
 
 extern "C" [[noreturn]]
@@ -79,6 +80,24 @@ void kmain(const multiboot_info_t& multiboot_info, uint32_t magic) {
         println("  - {} ({} Kb) Inteface: {}",
             disk.get_model(), disk.get_size() / 2,
             get_interface_name(disk.get_interface_type()));
+
+        auto maybe_fs = fat::FatFS::try_read(disk);
+        if (!maybe_fs.has_value()) {
+            println("    No file system.");
+            continue;
+        }
+
+        auto files = maybe_fs.get_value().list_root();
+        if (!files.has_value()) {
+            LOG_ERROR("Failed to list files on {}.", disk.get_model());
+            println("    Failed to list the files.");
+            continue;
+        }
+
+        for (const auto& entry : files.get_value()) {
+            println("    + {}{}",
+                entry.name, entry.is_directory ? "/" : "");
+        }
     };
 
     Option<const ps2::Device&> keyboard = ps2::find_device_with_type(0xab83);
