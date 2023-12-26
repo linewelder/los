@@ -165,20 +165,13 @@ namespace fat {
         return fs;
     }
 
-    Option<Vector<DirEntry>> FatFS::list_root() const {
-        Vector<DirEntry> list;
-        if (!read_files_from_sector(first_root_sector, list)) {
-            return {};
-        }
-        return list;
-    }
-
     /**
-     * Consumes FileEntry and LongNameEntry one by one, returning
-     * a DirEntry when ready.
+     * Reading a directory requires tracking some context.
      */
     class DirectoryParser {
     public:
+        DirectoryParser(const FatFS& fs) : fs(fs) {}
+
         /**
          * Put `ch` at the given index in `long_name_buffer`,
          * filling the gap with ' ' if the index is out of bounds.
@@ -211,6 +204,10 @@ namespace fat {
             }
         };
 
+        /**
+         * Reads FatDirEntry'ies one by one, returning
+         * a DirEntry when ready.
+         */
         Option<DirEntry> read_entry(const FatDirEntry& dir_entry) {
             // Assume it's a file entry.
             const auto& entry = dir_entry.file;
@@ -251,30 +248,39 @@ namespace fat {
             return file;
         }
 
+        bool read_files_from_sector(
+            uint32_t sector, Vector<DirEntry>& list)
+        {
+            Array<uint8_t, 512> data;
+            if (!fs.disk.read(sector, data)) return false;
+
+            Span<const FatDirEntry> entries{
+                reinterpret_cast<const FatDirEntry*>(data.begin()),
+                16
+            };
+
+            for (const auto& entry : entries) {
+                auto maybe = read_entry(entry);
+                if (maybe.has_value()) {
+                    list.push_back(move(maybe.get_value()));
+                }
+            }
+
+            return true;
+        }
+
     private:
+        const FatFS& fs;
         String long_name_buffer;
     };
 
-    bool FatFS::read_files_from_sector(
-        uint32_t sector, Vector<DirEntry>& list) const
-    {
-        Array<uint8_t, 512> data;
-        if (!disk.read(sector, data)) return false;
-
-        Span<const FatDirEntry> entries{
-            reinterpret_cast<const FatDirEntry*>(data.begin()),
-            16
-        };
-
-        DirectoryParser parser;
-        for (const auto& entry : entries) {
-            auto maybe = parser.read_entry(entry);
-            if (maybe.has_value()) {
-                list.push_back(move(maybe.get_value()));
-            }
+    Option<Vector<DirEntry>> FatFS::list_root() const {
+        Vector<DirEntry> list;
+        DirectoryParser parser(*this);
+        if (!parser.read_files_from_sector(first_root_sector, list)) {
+            return {};
         }
-
-        return true;
+        return list;
     }
 
     FatFS::FatFS(const IDisk& disk) : disk(disk) {}
