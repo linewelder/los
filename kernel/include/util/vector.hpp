@@ -32,7 +32,7 @@ public:
         : items(reinterpret_cast<T*>(kmalloc(sizeof(T) * other.capacity))),
           count(other.count), capacity(other.capacity)
     {
-        memcpy(items, other.items, sizeof(T) * other.count);
+        copy_construct<T>(*this, other);
     }
 
     Vector& operator=(const Vector& other) {
@@ -42,33 +42,7 @@ public:
         count = other.count;
         capacity = other.capacity;
 
-        memcpy(items, other.items, sizeof(T) * other.count);
-
-        return *this;
-    }
-
-    Vector(const Vector& other)
-        requires(!IsTriviallyCopyConstructible<T>)
-        : items(reinterpret_cast<T*>(kmalloc(sizeof(T) * other.capacity))),
-          count(other.count), capacity(other.capacity)
-    {
-        for (size_t i = 0; i < other.count; i++) {
-            items[i] = other.items[i];
-        }
-    }
-
-    Vector& operator=(const Vector& other)
-        requires(!IsTriviallyCopyConstructible<T>)
-    {
-        delete[] items;
-
-        items = reinterpret_cast<T*>(kmalloc(sizeof(T) * other.capacity));
-        count = other.count;
-        capacity = other.capacity;
-
-        for (size_t i = 0; i < other.count; i++) {
-            items[i] = other.items[i];
-        }
+        copy_construct<T>(*this, other);
 
         return *this;
     }

@@ -29,18 +29,14 @@ public:
         requires(!IsTriviallyCopyConstructible<T>)
         : count(other.count)
     {
-        for (size_t i = 0; i < count; i++) {
-            new (&items[i]) T(other.items[i]);
-        }
+        copy_construct<T>(*this, other);
     }
 
     constexpr InplaceVector& operator=(const InplaceVector& other)
         requires(!IsTriviallyCopyAssignable<T>)
     {
         count = other.count;
-        for (size_t i = 0; i < count; i++) {
-            items[i] = other.items[i];
-        }
+        copy_assign<T>(*this, other);
         return *this;
     }
 
