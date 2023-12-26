@@ -158,8 +158,12 @@ namespace fat {
         fs.first_data_sector = first_data_sector;
         fs.sectors_per_cluster = header.sectors_per_cluster;
 
-        fs.first_root_sector = type == FatType::FAT32
-            ? fs.first_sector_of(header.fat32.root_cluster)
+        // Round up to a whole number of sectors.
+        fs.root_sectors = ((header.root_entry_count * 32) + (header.bytes_per_sector - 1))
+            / header.bytes_per_sector;
+
+        fs.root_start = type == FatType::FAT32
+            ? header.fat32.root_cluster
             : first_data_sector - root_dir_sectors;
 
         return fs;
@@ -269,6 +273,18 @@ namespace fat {
             return true;
         }
 
+        bool read_files_from_cluster(
+            uint32_t cluster, Vector<DirEntry>& list)
+        {
+            auto start = fs.first_sector_of(cluster);
+            for (int i = 0; i < fs.sectors_per_cluster; i++) {
+                if (!read_files_from_sector(start + i, list)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
     private:
         const FatFS& fs;
         String long_name_buffer;
@@ -277,8 +293,16 @@ namespace fat {
     Option<Vector<DirEntry>> FatFS::list_root() const {
         Vector<DirEntry> list;
         DirectoryParser parser(*this);
-        if (!parser.read_files_from_sector(first_root_sector, list)) {
-            return {};
+        if (type == FatType::FAT32) {
+            if (!parser.read_files_from_cluster(root_start, list)) {
+                return {};
+            }
+        } else {
+            for (uint32_t i = 0; i < root_sectors; i++) {
+                if (!parser.read_files_from_sector(root_start + i, list)) {
+                    return {};
+                }
+            }
         }
         return list;
     }
