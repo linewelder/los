@@ -110,6 +110,11 @@ namespace fat {
     };
     static_assert(sizeof(LongNameEntry) == 32);
 
+    union FatDirEntry {
+        FileEntry file;
+        LongNameEntry long_name;
+    };
+
     Option<FatFS> FatFS::try_read(const IDisk& disk) {
         Array<uint8_t, 512> boot_sector;
         if (!disk.read(0, boot_sector)) {
@@ -174,37 +179,80 @@ namespace fat {
      */
     class DirectoryParser {
     public:
-        Option<DirEntry> read_entry(const FileEntry& entry) {
+        /**
+         * Put `ch` at the given index in `long_name_buffer`,
+         * filling the gap with ' ' if the index is out of bounds.
+         */
+        void put_expanding(char ch, size_t index) {
+            if (index >= long_name_buffer.get_size()) {
+                while (index > long_name_buffer.get_size()) {
+                    long_name_buffer.push_back(' ');
+                }
+                long_name_buffer.push_back(ch);
+            } else {
+                long_name_buffer[index] = ch;
+            }
+        }
+
+        void read_long_name_entry(const LongNameEntry& entry) {
+            // Each entry is 13 characters max.
+            size_t index = (entry.order & 0x0f) * 13 - 13;
+            for (auto ch : entry.name_0) {
+                if (ch == 0) return;
+                put_expanding(ch, index++);
+            }
+            for (auto ch : entry.name_1) {
+                if (ch == 0) return;
+                put_expanding(ch, index++);
+            }
+            for (auto ch : entry.name_2) {
+                if (ch == 0) return;
+                put_expanding(ch, index++);
+            }
+        };
+
+        Option<DirEntry> read_entry(const FatDirEntry& dir_entry) {
+            // Assume it's a file entry.
+            const auto& entry = dir_entry.file;
+
             if (entry.name[0] == '\0') return {}; // Out of entries.
             if (entry.name[0] == '\xe5') return {}; // Entry not used.
 
-            if (has_flag(entry.attributes, FileAttr::VOLUME_ID)) {
+            if (has_flag(entry.attributes, FileAttr::LONG_NAME)) {
+                read_long_name_entry(dir_entry.long_name);
                 return {};
             }
 
-            // We do not support long file names yet.
-            if (entry.attributes == FileAttr::LONG_NAME) {
+            if (has_flag(entry.attributes, FileAttr::VOLUME_ID)) {
                 return {};
             }
 
             DirEntry file;
             file.is_directory = has_flag(entry.attributes, FileAttr::DIRECTORY);
 
-            for (auto ch : entry.name) {
-                if (ch == ' ') break;
-                file.name.push_back(ch);
-            }
-
-            if (entry.extension[0] != ' ') {
-                file.name.push_back('.');
-                for (auto ch : entry.extension) {
+            if (long_name_buffer.get_size() > 0) {
+                file.name = move(long_name_buffer);
+                long_name_buffer = String();
+            } else {
+                for (auto ch : entry.name) {
                     if (ch == ' ') break;
                     file.name.push_back(ch);
                 }
-            }
+
+                if (entry.extension[0] != ' ') {
+                    file.name.push_back('.');
+                    for (auto ch : entry.extension) {
+                        if (ch == ' ') break;
+                        file.name.push_back(ch);
+                    }
+                }
+            }   
 
             return file;
         }
+
+    private:
+        String long_name_buffer;
     };
 
     bool FatFS::read_files_from_sector(
@@ -213,8 +261,8 @@ namespace fat {
         Array<uint8_t, 512> data;
         if (!disk.read(sector, data)) return false;
 
-        Span<const FileEntry> entries{
-            reinterpret_cast<const FileEntry*>(data.begin()),
+        Span<const FatDirEntry> entries{
+            reinterpret_cast<const FatDirEntry*>(data.begin()),
             16
         };
 
