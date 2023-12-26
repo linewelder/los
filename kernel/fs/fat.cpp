@@ -157,6 +157,7 @@ namespace fat {
         fs.type = type;
         fs.first_data_sector = first_data_sector;
         fs.sectors_per_cluster = header.sectors_per_cluster;
+        fs.first_fat_sector = header.reserved_sector_count;
 
         // Round up to a whole number of sectors.
         fs.root_sectors = ((header.root_entry_count * 32) + (header.bytes_per_sector - 1))
@@ -285,6 +286,20 @@ namespace fat {
             return true;
         }
 
+        bool read_cluster_chain(
+            uint32_t first_cluster, Vector<DirEntry>& list)
+        {
+            Option<uint32_t> current = first_cluster;
+            do {
+                if (!read_cluster(current.get_value(), list)) {
+                    return false;
+                }
+                current = fs.next_cluster_of(current.get_value());
+            } while (current.has_value());
+
+            return true;
+        }
+
     private:
         const FatFS& fs;
         String long_name_buffer;
@@ -294,7 +309,7 @@ namespace fat {
         Vector<DirEntry> list;
         DirectoryParser parser(*this);
         if (type == FatType::FAT32) {
-            if (!parser.read_cluster(root_start, list)) {
+            if (!parser.read_cluster_chain(root_start, list)) {
                 return {};
             }
         } else {
@@ -311,5 +326,33 @@ namespace fat {
 
     uint32_t FatFS::first_sector_of(uint32_t cluster) const {
         return ((cluster - 2) * sectors_per_cluster) + first_data_sector;
+    }
+
+    inline constexpr uint32_t FAT_CLUSTER_FREE = 0x0000'0000;
+    inline constexpr uint32_t FAT_CLUSTER_BAD = 0x0fff'fff7;
+    inline constexpr uint32_t FAT_CLUSTER_LAST = 0x0fff'fff8;
+
+    Option<uint32_t> FatFS::next_cluster_of(uint32_t cluster) const {
+        Array<uint8_t, 512> buffer;
+        auto offset = cluster * 4;
+        auto sector = first_fat_sector + (offset / 512);
+        auto entry_offset = offset % 512;
+
+        if (!disk.read(sector, buffer)) {
+            LOG_ERROR("Failed to read the FAT.");
+            return {};
+        }
+
+        auto value = *reinterpret_cast<uint32_t*>(&buffer[entry_offset]);
+        value &= 0x0fff'ffff; // FAT32 ignores the highest 4 bits.
+
+        if (value == FAT_CLUSTER_FREE ||
+            value == FAT_CLUSTER_BAD ||
+            value >= FAT_CLUSTER_LAST)
+        {
+            return {};
+        }
+
+        return value;
     }
 }
