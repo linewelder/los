@@ -82,7 +82,8 @@ namespace fat {
     };
 
     struct [[gnu::packed]] FileEntry {
-        Array<char, 11> name;
+        Array<char, 8> name;
+        Array<char, 3> extension;
         FileAttr attributes;
         uint8_t reserved; // For Windows NT.
         uint8_t creation_time_tenths_of_sec; //< Range 0..199 inclusive.
@@ -178,6 +179,10 @@ namespace fat {
             16
         };
 
+        struct LongFileNameBuffer {
+            
+        };
+
         for (const auto& entry : entries) {
             if (entry.name[0] == '\0') break; // Out of entries.
             if (entry.name[0] == '\xe5') continue; // Entry not used.
@@ -194,14 +199,20 @@ namespace fat {
             DirEntry file;
             file.is_directory = has_flag(entry.attributes, FileAttr::DIRECTORY);
 
-            size_t length = 0;
             for (auto ch : entry.name) {
                 if (ch == ' ') break;
-                file.name[length++] = ch;
+                file.name.push_back(ch);
             }
-            file.name[length] = '\0';
 
-            list.push_back(file);
+            if (entry.extension[0] != ' ') {
+                file.name.push_back('.');
+                for (auto ch : entry.extension) {
+                    if (ch == ' ') break;
+                    file.name.push_back(ch);
+                }
+            }
+
+            list.push_back(move(file));
         }
         return true;
     }

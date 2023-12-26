@@ -3,6 +3,7 @@
 #include <disk/disk.hpp>
 #include <util/array.hpp>
 #include <util/option.hpp>
+#include <util/string.hpp>
 #include <util/vector.hpp>
 
 namespace fat {
@@ -13,7 +14,7 @@ namespace fat {
     };
 
     struct DirEntry {
-        Array<char, 12> name;
+        String name;
         bool is_directory;
     };
 
