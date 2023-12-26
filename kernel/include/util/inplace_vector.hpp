@@ -120,7 +120,7 @@ public:
         return { &items[0], count };
     }
 
-    constexpr operator Span<T>() const {
+    constexpr operator Span<T>() {
         return { &items[0], count };
     }
 
