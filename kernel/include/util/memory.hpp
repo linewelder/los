@@ -46,9 +46,32 @@ void copy_assign(Span<T> dst, Span<const T> src) requires(IsCopyConstructible<T>
 }
 
 /**
- * Compare byte arrays of length `size`.
- *
- * The sign of the result is the sign of the difference between
- * the first pair of bytes that differ; or 0 if they are equal.
+ * Compare two spans alphabetically.
  */
-int memcmp(const void* a, const void* b, size_t size);
+template <typename T>
+int compare(Span<const T> lhs, Span<const T> rhs) {
+    auto lhs_iter = lhs.begin();
+    auto rhs_iter = rhs.begin();
+
+    auto lhs_end = lhs.end();
+    auto rhs_end = rhs.end();
+
+    while (lhs_iter != lhs_end && rhs_iter != rhs_end) {
+        if (*lhs_iter < *rhs_iter) {
+            return -1;
+        } else if (*lhs_iter > * rhs_iter) {
+            return 1;
+        }
+
+        lhs_iter++;
+        rhs_iter++;
+    }
+
+    if (lhs_iter != lhs_end) {
+        return 1;
+    } else if (rhs_iter != rhs_end) {
+        return -1;
+    } else {
+        return 0;
+    }
+}
