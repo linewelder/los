@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <util/assert.hpp>
+#include <util/span.hpp>
 
 /**
  * A const slice of a string. Not null-terminated.
@@ -30,6 +31,13 @@ public:
     constexpr StringView substring(size_t start, size_t size) const {
         ASSERT(start + size <= this->size);
         return StringView(this->start + start, size);
+    }
+
+    constexpr const char* begin() const { return start; }
+    constexpr const char* end() const { return start + size; }
+
+    constexpr operator Span<const char>() const {
+        return { start, size };
     }
 
 private:
