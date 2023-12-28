@@ -36,7 +36,7 @@ public:
     }
 
     Vector& operator=(const Vector& other) {
-        delete[] items;
+        destroy();
 
         items = reinterpret_cast<T*>(kmalloc(sizeof(T) * other.capacity));
         count = other.count;
@@ -56,7 +56,7 @@ public:
     }
 
     Vector& operator=(Vector&& other) {
-        delete[] items;
+        destroy();
 
         items = other.items;
         count = other.count;
@@ -70,7 +70,7 @@ public:
     }
 
     ~Vector() {
-        delete[] items;
+        destroy();
     }
 
     /**
@@ -126,6 +126,17 @@ private:
         capacity = max(8, capacity * 2);
         items = reinterpret_cast<T*>(krealloc(
             reinterpret_cast<void*>(items), capacity * sizeof(T)));
+    }
+
+    void destroy() {
+        kfree(items);
+    }
+
+    void destroy() requires (!IsTriviallyDestructible<T>) {
+        for (size_t i = 0; i < count; i++) {
+            items[i].~T();
+        }
+        kfree(items);
     }
 
     T* items;
