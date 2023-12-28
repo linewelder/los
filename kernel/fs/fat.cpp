@@ -4,6 +4,7 @@
 #include <disk/disk.hpp>
 #include <kernel/log.hpp>
 #include <util/array.hpp>
+#include <util/byte_buffer.hpp>
 #include <util/enum_flags.hpp>
 
 namespace fat {
@@ -253,15 +254,15 @@ namespace fat {
             return file;
         }
 
-        bool read_sector(
-            uint32_t sector, Vector<DirEntry>& list)
+        bool read_sectors(
+            uint32_t first, uint32_t count, Vector<DirEntry>& list)
         {
-            Array<uint8_t, 512> data;
-            if (!fs.disk.read(sector, data)) return false;
+            ByteBuffer data(count * 512);
+            if (!fs.disk.read(first, data)) return false;
 
             Span<const FatDirEntry> entries{
                 reinterpret_cast<const FatDirEntry*>(data.begin()),
-                16
+                data.get_size() / sizeof(FatDirEntry)
             };
 
             for (const auto& entry : entries) {
@@ -278,12 +279,7 @@ namespace fat {
             uint32_t cluster, Vector<DirEntry>& list)
         {
             auto start = fs.first_sector_of(cluster);
-            for (int i = 0; i < fs.sectors_per_cluster; i++) {
-                if (!read_sector(start + i, list)) {
-                    return false;
-                }
-            }
-            return true;
+            return read_sectors(start, fs.sectors_per_cluster, list);
         }
 
         bool read_cluster_chain(
@@ -313,10 +309,8 @@ namespace fat {
                 return {};
             }
         } else {
-            for (uint32_t i = 0; i < root_sectors; i++) {
-                if (!parser.read_sector(root_start + i, list)) {
-                    return {};
-                }
+            if (!parser.read_sectors(root_start, root_sectors, list)) {
+                return {};
             }
         }
         return list;
