@@ -176,130 +176,147 @@ namespace fat {
      */
     class DirectoryParser {
     public:
-        DirectoryParser(const FatFS& fs) : fs(fs) {}
+        DirectoryParser(const FatFS& fs);
 
         /**
          * Put `ch` at the given index in `long_name_buffer`,
          * filling the gap with ' ' if the index is out of bounds.
          */
-        void put_expanding(char ch, size_t index) {
-            if (index >= long_name_buffer.get_size()) {
-                while (index > long_name_buffer.get_size()) {
-                    long_name_buffer.push_back(' ');
-                }
-                long_name_buffer.push_back(ch);
-            } else {
-                long_name_buffer[index] = ch;
-            }
-        }
+        void put_expanding(char ch, size_t index);
 
-        void read_long_name_entry(const LongNameEntry& entry) {
-            // Each entry is 13 characters max.
-            size_t index = (entry.order & 0x0f) * 13 - 13;
-            for (auto ch : entry.name_0) {
-                if (ch == 0) return;
-                put_expanding(ch, index++);
-            }
-            for (auto ch : entry.name_1) {
-                if (ch == 0) return;
-                put_expanding(ch, index++);
-            }
-            for (auto ch : entry.name_2) {
-                if (ch == 0) return;
-                put_expanding(ch, index++);
-            }
-        };
+        void read_long_name_entry(const LongNameEntry& entry);
 
         /**
          * Reads FatDirEntry'ies one by one, returning
          * a DirEntry when ready.
          */
-        Option<DirEntry> read_entry(const FatDirEntry& dir_entry) {
-            // Assume it's a file entry.
-            const auto& entry = dir_entry.file;
-
-            if (entry.name[0] == '\0') return {}; // Out of entries.
-            if (entry.name[0] == '\xe5') return {}; // Entry not used.
-
-            if (has_flag(entry.attributes, FileAttr::LONG_NAME)) {
-                read_long_name_entry(dir_entry.long_name);
-                return {};
-            }
-
-            if (has_flag(entry.attributes, FileAttr::VOLUME_ID)) {
-                return {};
-            }
-
-            DirEntry file;
-            file.is_directory = has_flag(entry.attributes, FileAttr::DIRECTORY);
-
-            if (long_name_buffer.get_size() > 0) {
-                file.name = move(long_name_buffer);
-                long_name_buffer = String();
-            } else {
-                for (auto ch : entry.name) {
-                    if (ch == ' ') break;
-                    file.name.push_back(ch);
-                }
-
-                if (entry.extension[0] != ' ') {
-                    file.name.push_back('.');
-                    for (auto ch : entry.extension) {
-                        if (ch == ' ') break;
-                        file.name.push_back(ch);
-                    }
-                }
-            }   
-
-            return file;
-        }
+        Option<DirEntry> read_entry(const FatDirEntry& dir_entry);
 
         bool read_sectors(
-            uint32_t first, uint32_t count, Vector<DirEntry>& list)
-        {
-            ByteBuffer data(count * 512);
-            if (!fs.disk.read(first, data)) return false;
-
-            Span<const FatDirEntry> entries{
-                reinterpret_cast<const FatDirEntry*>(data.begin()),
-                data.get_size() / sizeof(FatDirEntry)
-            };
-
-            for (const auto& entry : entries) {
-                auto maybe = read_entry(entry);
-                if (maybe.has_value()) {
-                    list.push_back(move(maybe.get_value()));
-                }
-            }
-
-            return true;
-        }
+            uint32_t first, uint32_t count, Vector<DirEntry>& list);
 
         bool read_cluster(
-            uint32_t cluster, Vector<DirEntry>& list)
-        {
-            auto start = fs.first_sector_of(cluster);
-            return read_sectors(start, fs.sectors_per_cluster, list);
-        }
+            uint32_t cluster, Vector<DirEntry>& list);
 
         bool read_cluster_chain(
-            uint32_t first_cluster, Vector<DirEntry>& list)
-        {
-            Option<uint32_t> current = first_cluster;
-            do {
-                if (!read_cluster(current.get_value(), list)) {
-                    return false;
-                }
-                current = fs.next_cluster_of(current.get_value());
-            } while (current.has_value());
-
-            return true;
-        }
+            uint32_t first_cluster, Vector<DirEntry>& list);
 
     private:
         const FatFS& fs;
         String long_name_buffer;
     };
+
+    DirectoryParser::DirectoryParser(const FatFS& fs) : fs(fs) {}
+
+    void DirectoryParser::put_expanding(char ch, size_t index) {
+        if (index >= long_name_buffer.get_size()) {
+            while (index > long_name_buffer.get_size()) {
+                long_name_buffer.push_back(' ');
+            }
+            long_name_buffer.push_back(ch);
+        } else {
+            long_name_buffer[index] = ch;
+        }
+    }
+
+    void DirectoryParser::read_long_name_entry(const LongNameEntry& entry) {
+        // Each entry is 13 characters max.
+        size_t index = (entry.order & 0x0f) * 13 - 13;
+        for (auto ch : entry.name_0) {
+            if (ch == 0) return;
+            put_expanding(ch, index++);
+        }
+        for (auto ch : entry.name_1) {
+            if (ch == 0) return;
+            put_expanding(ch, index++);
+        }
+        for (auto ch : entry.name_2) {
+            if (ch == 0) return;
+            put_expanding(ch, index++);
+        }
+    };
+
+    Option<DirEntry> DirectoryParser::read_entry(const FatDirEntry& dir_entry) {
+        // Assume it's a file entry.
+        const auto& entry = dir_entry.file;
+
+        if (entry.name[0] == '\0') return {}; // Out of entries.
+        if (entry.name[0] == '\xe5') return {}; // Entry not used.
+
+        if (has_flag(entry.attributes, FileAttr::LONG_NAME)) {
+            read_long_name_entry(dir_entry.long_name);
+            return {};
+        }
+
+        if (has_flag(entry.attributes, FileAttr::VOLUME_ID)) {
+            return {};
+        }
+
+        DirEntry file;
+        file.is_directory = has_flag(entry.attributes, FileAttr::DIRECTORY);
+
+        if (long_name_buffer.get_size() > 0) {
+            file.name = move(long_name_buffer);
+            long_name_buffer = String();
+        } else {
+            for (auto ch : entry.name) {
+                if (ch == ' ') break;
+                file.name.push_back(ch);
+            }
+
+            if (entry.extension[0] != ' ') {
+                file.name.push_back('.');
+                for (auto ch : entry.extension) {
+                    if (ch == ' ') break;
+                    file.name.push_back(ch);
+                }
+            }
+        }   
+
+        return file;
+    }
+
+    bool DirectoryParser::read_sectors(
+        uint32_t first, uint32_t count, Vector<DirEntry>& list)
+    {
+        ByteBuffer data(count * 512);
+        if (!fs.disk.read(first, data)) return false;
+
+        Span<const FatDirEntry> entries{
+            reinterpret_cast<const FatDirEntry*>(data.begin()),
+            data.get_size() / sizeof(FatDirEntry)
+        };
+
+        for (const auto& entry : entries) {
+            auto maybe = read_entry(entry);
+            if (maybe.has_value()) {
+                list.push_back(move(maybe.get_value()));
+            }
+        }
+
+        return true;
+    }
+
+    bool DirectoryParser::read_cluster(
+        uint32_t cluster, Vector<DirEntry>& list)
+    {
+        auto start = fs.first_sector_of(cluster);
+        return read_sectors(start, fs.sectors_per_cluster, list);
+    }
+
+    bool DirectoryParser::read_cluster_chain(
+        uint32_t first_cluster, Vector<DirEntry>& list)
+    {
+        Option<uint32_t> current = first_cluster;
+        do {
+            if (!read_cluster(current.get_value(), list)) {
+                return false;
+            }
+            current = fs.next_cluster_of(current.get_value());
+        } while (current.has_value());
+
+        return true;
+    }
 
     Option<Vector<DirEntry>> FatFS::list_root() const {
         Vector<DirEntry> list;
