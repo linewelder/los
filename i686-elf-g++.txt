@@ -1,0 +1,19 @@
+[binaries]
+cpp = 'i686-elf-g++'
+ar = 'i686-elf-ar'
+strip = 'i686-elf-strip'
+ld = 'i686-elf-g++'
+
+[host_machine]
+system = 'none'
+kernel = 'none'
+cpu_family = 'x86'
+cpu = 'x86'
+endian = 'little'
+
+[built-in options]
+cpp_args = [
+    '-fno-exceptions', '-fno-rtti',
+    '-ffreestanding', '-nostdlib',
+    '-mgeneral-regs-only']
+cpp_link_args = ['-nostdlib', '-lgcc']
